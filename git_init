@@ -1,0 +1,12 @@
+git init
+git add README.md
+git commit -m "first commit"
+git branch -M main
+git remote rm origin
+git remote add origin https://github.com/wbenelmir/career.git
+git push -u origin main
+
+py -3.11 -m venv venv
+
+
+python -m pip install --upgrade pip setuptools wheel

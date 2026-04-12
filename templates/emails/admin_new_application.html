@@ -1,0 +1,131 @@
+{% extends "emails/email_base.html" %}
+
+{% block title %}إشعار بطلب ترشح جديد{% endblock %}
+{% block header_subtitle %}إشعار داخلي بطلب ترشح جديد{% endblock %}
+{% block footer_text %}
+إشعار آلي صادر عن منصة الترشح التابعة لوزارة اقتصاد المعرفة والمؤسسات الناشئة والمؤسسات المصغرة.
+{% endblock %}
+
+{% block content %}
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" dir="rtl">
+    <tr>
+        <td class="mobile-padding" align="right" style="padding:34px 42px 10px 42px; text-align:right;">
+            <p style="margin:0 0 14px 0; color:#334155; font-size:15px; line-height:2.1;">
+                تم تسجيل طلب ترشح جديد عبر المنصة الإلكترونية، وفيما يلي أهم البيانات المرجعية المرتبطة به قصد المتابعة والمعالجة الإدارية.
+            </p>
+        </td>
+    </tr>
+</table>
+
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+    <tr>
+        <td class="mobile-padding" style="padding:22px 42px 0 42px;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f9fcfb; border:1px solid #e3ece8; border-radius:18px;">
+                <tr>
+                    <td align="right" style="padding:24px 24px 20px 24px; text-align:right;">
+                        <h2 style="margin:0 0 16px 0; color:#0f766e; font-size:18px; line-height:1.6; font-weight:700;">
+                            بيانات الطلب
+                        </h2>
+
+                        <p style="margin:0 0 10px 0; color:#1f2937; font-size:14px; line-height:2;">
+                            <strong>رقم الطلب:</strong>
+                            {{ application.application_number }}
+                        </p>
+
+                        <p style="margin:0 0 10px 0; color:#1f2937; font-size:14px; line-height:2;">
+                            <strong>رمز التتبع:</strong>
+                            {{ tracking_code }}
+                        </p>
+
+                        {% if candidate %}
+                            {% if candidate.full_name %}
+                            <p style="margin:0 0 10px 0; color:#1f2937; font-size:14px; line-height:2;">
+                                <strong>اسم المترشح:</strong>
+                                {{ candidate.full_name }}
+                            </p>
+                            {% else %}
+                            <p style="margin:0 0 10px 0; color:#1f2937; font-size:14px; line-height:2;">
+                                <strong>المترشح:</strong>
+                                {{ candidate }}
+                            </p>
+                            {% endif %}
+
+                            {% if candidate.email %}
+                            <p style="margin:0 0 10px 0; color:#1f2937; font-size:14px; line-height:2;">
+                                <strong>البريد الإلكتروني:</strong>
+                                {{ candidate.email }}
+                            </p>
+                            {% endif %}
+
+                            {% if candidate.phone_number %}
+                            <p style="margin:0 0 10px 0; color:#1f2937; font-size:14px; line-height:2;">
+                                <strong>رقم الهاتف:</strong>
+                                {{ candidate.phone_number }}
+                            </p>
+                            {% endif %}
+                        {% endif %}
+
+                        {% if poste %}
+                        <p style="margin:0 0 10px 0; color:#1f2937; font-size:14px; line-height:2;">
+                            <strong>المنصب:</strong>
+                            {{ poste.title }}
+                        </p>
+
+                        {% if poste.direction %}
+                        <p style="margin:0 0 10px 0; color:#1f2937; font-size:14px; line-height:2;">
+                            <strong>المديرية:</strong>
+                            {{ poste.direction }}
+                        </p>
+                        {% endif %}
+
+                        {% if poste.sub_direction %}
+                        <p style="margin:0 0 10px 0; color:#1f2937; font-size:14px; line-height:2;">
+                            <strong>المديرية الفرعية:</strong>
+                            {{ poste.sub_direction }}
+                        </p>
+                        {% endif %}
+
+                        <p style="margin:0 0 10px 0; color:#1f2937; font-size:14px; line-height:2;">
+                            <strong>نوع المنصب:</strong>
+                            {{ poste.get_poste_type_display }}
+                        </p>
+                        {% endif %}
+
+                        {% if application.submitted_at %}
+                        <p style="margin:0; color:#1f2937; font-size:14px; line-height:2;">
+                            <strong>تاريخ الإرسال:</strong>
+                            {{ application.submitted_at|date:"Y-m-d H:i" }}
+                        </p>
+                        {% endif %}
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+    <tr>
+        <td class="mobile-padding" style="padding:24px 42px 0 42px;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#eef6ff; border:1px solid #cfe2ff; border-radius:16px;">
+                <tr>
+                    <td align="right" style="padding:18px 20px; color:#0b5ed7; font-size:14px; line-height:2; text-align:right;">
+                        <strong>ملاحظة:</strong><br>
+                        تم إنشاء هذا الإشعار تلقائيًا بعد الإرسال النهائي الناجح لطلب الترشح عبر المنصة.
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+    <tr>
+        <td class="mobile-padding" align="right" style="padding:28px 42px 22px 42px; text-align:right;">
+            <p style="margin:0; color:#374151; font-size:14px; line-height:2.1;">
+                يرجى متابعة معالجة الطلب ضمن الواجهة الإدارية وفق الإجراءات المعتمدة.
+            </p>
+        </td>
+    </tr>
+</table>
+{% endblock %}

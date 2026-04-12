@@ -1,0 +1,529 @@
+{% extends "base/public_base.html" %}
+
+{% block title %}الرئيسية | منصة الترشح{% endblock %}
+
+{% block content %}
+
+<section class="section-padding pt-4">
+    <div class="container">
+        <div class="row align-items-center g-4">
+
+            <div class="col-lg-7">
+                <div class="pe-lg-4">
+
+                    <span class="badge-soft-primary mb-3 d-inline-block">
+                        منصة الترشح للوظائف والمناصب العليا
+                    </span>
+
+                    <h1 class="fw-bold mb-3" style="font-size: 2.3rem; line-height: 1.7; color: var(--primary-dark);">
+                        منصة استقبال ودراسة طلبات الترشح
+                        <span style="color: var(--primary-color);">للوظائف والمناصب العليا</span>
+                    </h1>
+
+                    <p class="text-muted mb-4" style="font-size: 1.05rem; line-height: 2;">
+                        تتيح هذه المنصة للمترشحين الاطلاع على الوظائف والمناصب العليا المفتوحة،
+                        وتقديم طلبات الترشح وفق الشروط والتنظيمات المعمول بها، مع إمكانية
+                        متابعة حالة الملف باستعمال رمز التتبع بعد الإرسال النهائي.
+                    </p>
+
+                    <div class="d-flex flex-wrap gap-3">
+                        <a href="{% url 'applications:start_application' %}" class="btn btn-primary-custom px-4">
+                            <i class="bi bi-send-check ms-1"></i>
+                            ابدأ الترشح الآن
+                        </a>
+
+                        <a href="{% url 'tracking:track_application' %}" class="btn btn-outline-custom px-4">
+                            <i class="bi bi-search ms-1"></i>
+                            تتبع طلبك
+                        </a>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="col-lg-5">
+                <div class="custom-card h-100">
+                    <div class="card-body">
+
+                        <h3 class="section-title mb-3">معلومات سريعة</h3>
+
+                        <div class="d-flex align-items-start gap-3 mb-4">
+                            <div class="badge-soft-success"><i class="bi bi-file-earmark-check"></i></div>
+                            <div>
+                                <h6 class="fw-bold mb-1">إيداع إلكتروني منظم</h6>
+                                <p class="text-muted mb-0 small">
+                                    تعبئة البيانات ورفع الوثائق المطلوبة عبر خطوات واضحة ومتسلسلة.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="d-flex align-items-start gap-3 mb-4">
+                            <div class="badge-soft-info"><i class="bi bi-briefcase"></i></div>
+                            <div>
+                                <h6 class="fw-bold mb-1">وظائف ومناصب متعددة</h6>
+                                <p class="text-muted mb-0 small">
+                                    تتيح المنصة الاطلاع على مختلف الوظائف والمناصب العليا المفتوحة للترشح.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="d-flex align-items-start gap-3">
+                            <div class="badge-soft-warning"><i class="bi bi-clock-history"></i></div>
+                            <div>
+                                <h6 class="fw-bold mb-1">تتبع حالة الملف</h6>
+                                <p class="text-muted mb-0 small">
+                                    بعد الإرسال النهائي، يتحصل المترشح على رمز تتبع لمتابعة ملفه بسهولة.
+                                </p>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+<section class="section-padding pt-0">
+    <div class="container">
+        <div class="row g-4 align-items-stretch">
+
+            <div class="col-lg-6">
+                <div class="custom-card h-100">
+                    <div class="card-body">
+
+                        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-3">
+                            <div>
+                                <h3 class="section-title mb-1">الوظائف والمناصب المفتوحة</h3>
+                                <p class="section-subtitle mb-0">
+                                    يمكنكم الاطلاع على الفرص المفتوحة والتوجه مباشرة إلى صفحة الترشح.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="poste-filter-wrapper mb-4">
+                            <div class="poste-filter-grid">
+                                <a href="{% url 'root:home' %}"
+                                   class="poste-filter-item {% if not request.GET.type %}active{% endif %}">
+                                    <span class="filter-title">الكل</span>
+                                    <span class="filter-subtitle">جميع الفرص المفتوحة</span>
+                                </a>
+
+                                <a href="{% url 'root:home' %}?type=transfer"
+                                   class="poste-filter-item {% if request.GET.type == 'transfer' %}active{% endif %}">
+                                    <span class="filter-title">وظائف عليا</span>
+                                    <span class="filter-subtitle">الوظائف العليا المفتوحة للترشح</span>
+                                </a>
+
+                                <a href="{% url 'root:home' %}?type=detachment"
+                                   class="poste-filter-item {% if request.GET.type == 'detachment' %}active{% endif %}">
+                                    <span class="filter-title">مناصب عليا</span>
+                                    <span class="filter-subtitle">المناصب العليا المفتوحة للترشح</span>
+                                </a>
+
+                                <a href="{% url 'root:home' %}?type=head_office"
+                                   class="poste-filter-item {% if request.GET.type == 'head_office' %}active{% endif %}">
+                                    <span class="filter-title">رتب</span>
+                                    <span class="filter-subtitle">الرتب المفتوحة للترشح</span>
+                                </a>
+                            </div>
+                        </div>
+
+                        {% if postes %}
+                            <div class="d-flex flex-column gap-3">
+
+                                {% for poste in postes %}
+                                    <div class="poste-item-card">
+
+                                        <div class="poste-item-head">
+                                            <div class="d-flex flex-wrap align-items-center gap-2">
+                                                <span class="
+                                                    poste-type-badge
+                                                    {% if poste.poste_type == 'transfer' %}badge-soft-success
+                                                    {% elif poste.poste_type == 'detachment' %}badge-soft-warning
+                                                    {% elif poste.poste_type == 'head_office' %}badge-soft-primary
+                                                    {% else %}badge-soft-secondary
+                                                    {% endif %}
+                                                ">
+                                                    {{ poste.get_poste_type_display }}
+                                                </span>
+
+                                                {% if poste.positions_count %}
+                                                    <span class="poste-meta-chip">
+                                                        <i class="bi bi-people ms-1"></i>
+                                                        {{ poste.positions_count }} منصب
+                                                    </span>
+                                                {% endif %}
+                                            </div>
+
+                                            {% if poste.deadline %}
+                                                <div class="poste-deadline small">
+                                                    <i class="bi bi-calendar-event ms-1"></i>
+                                                    آخر أجل:
+                                                    {{ poste.deadline|date:"Y/m/d" }}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+
+                                        <div class="poste-item-body">
+                                            <h5 class="poste-title mb-2">
+                                                {{ poste.title }}
+                                            </h5>
+
+                                            <div class="poste-structure mb-3">
+                                                {% if poste.direction %}
+                                                    <div class="poste-structure-line">
+                                                        <i class="bi bi-building"></i>
+                                                        <span>{{ poste.direction }}</span>
+                                                    </div>
+                                                {% endif %}
+
+                                                {% if poste.sub_direction %}
+                                                    <div class="poste-structure-line">
+                                                        <i class="bi bi-diagram-3"></i>
+                                                        <span>{{ poste.sub_direction }}</span>
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+
+                                            {% if poste.description %}
+                                                <p class="poste-description mb-3">
+                                                    {{ poste.description|truncatewords:18 }}
+                                                </p>
+                                            {% endif %}
+
+                                            {% if poste.legal_reference %}
+                                                <div class="poste-legal-box">
+                                                    <div class="small text-muted d-flex align-items-center gap-1">
+                                                        <i class="bi bi-journal-text"></i>
+                                                        <span>{{ poste.legal_reference.title }}</span>
+                                                    </div>
+
+                                                    {% if poste.legal_reference.document_url %}
+                                                        <a href="{{ poste.legal_reference.document_url }}"
+                                                           target="_blank"
+                                                           rel="noopener"
+                                                           class="small footer-link d-inline-block mt-2">
+                                                            عرض المرجع القانوني
+                                                        </a>
+                                                    {% endif %}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+
+                                        <div class="poste-item-actions">
+                                            <a href="{% url 'root:poste_detail' poste.slug %}"
+                                               class="btn btn-sm btn-outline-secondary-custom">
+                                                <i class="bi bi-eye ms-1"></i>
+                                                التفاصيل
+                                            </a>
+
+                                            <a href="{% url 'applications:start_application_with_slug' poste.slug %}"
+                                               class="btn btn-sm btn-outline-custom">
+                                                <i class="bi bi-send-check ms-1"></i>
+                                                الترشح
+                                            </a>
+                                        </div>
+
+                                    </div>
+                                {% endfor %}
+                            </div>
+
+                            <div class="mt-4 d-flex flex-wrap gap-2">
+                                <a href="{% url 'root:poste_list' %}" class="btn btn-outline-custom">
+                                    <i class="bi bi-grid ms-1"></i>
+                                    عرض جميع الفرص
+                                </a>
+                            </div>
+                        {% else %}
+                            <div class="empty-state">
+                                <i class="bi bi-briefcase"></i>
+                                <h5 class="fw-bold mb-2">لا توجد فرص معروضة حاليًا</h5>
+                                <p class="mb-0">
+                                    لا تتوفر في الوقت الحالي وظائف أو مناصب مفتوحة للترشح. يرجى العودة لاحقًا للاطلاع على الإعلانات الجديدة.
+                                </p>
+                            </div>
+                        {% endif %}
+
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-6">
+                <div class="custom-card h-100">
+                    <div class="card-body d-flex flex-column">
+
+                        <div class="mb-4">
+                            <h3 class="section-title mb-2">تعليمات مهمة للمترشح</h3>
+                            <p class="section-subtitle mb-0">
+                                يرجى قراءة هذه التعليمات قبل البدء في إعداد ملف الترشح.
+                            </p>
+                        </div>
+
+                        <div class="d-flex flex-column gap-3 mb-4">
+
+                            <div class="soft-box d-flex align-items-start gap-3">
+                                <div class="badge-soft-info"><i class="bi bi-person-check"></i></div>
+                                <div>
+                                    <h6 class="fw-bold mb-1">التحقق من المعلومات</h6>
+                                    <p class="text-muted small mb-0">
+                                        تأكد من صحة المعلومات الشخصية والمهنية ومعلومات الاتصال قبل حفظها.
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div class="soft-box d-flex align-items-start gap-3">
+                                <div class="badge-soft-success"><i class="bi bi-briefcase"></i></div>
+                                <div>
+                                    <h6 class="fw-bold mb-1">اختيار الفرصة المناسبة</h6>
+                                    <p class="text-muted small mb-0">
+                                        اطلع على التفاصيل التنظيمية للمنصب، وتحقق من المديرية والمديرية الفرعية المرتبطتين به قبل البدء في الترشح.
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div class="soft-box d-flex align-items-start gap-3">
+                                <div class="badge-soft-warning"><i class="bi bi-file-earmark-arrow-up"></i></div>
+                                <div>
+                                    <h6 class="fw-bold mb-1">إرفاق الوثائق المطلوبة</h6>
+                                    <p class="text-muted small mb-0">
+                                        أرفق الوثائق المطلوبة بصيغة واضحة وقابلة للقراءة، وراجع الملف قبل الإرسال النهائي.
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div class="soft-box d-flex align-items-start gap-3">
+                                <div class="badge-soft-primary"><i class="bi bi-search"></i></div>
+                                <div>
+                                    <h6 class="fw-bold mb-1">الاحتفاظ برمز التتبع</h6>
+                                    <p class="text-muted small mb-0">
+                                        بعد الإرسال النهائي، احتفظ برمز التتبع لمتابعة حالة الطلب ومراحل معالجته.
+                                    </p>
+                                </div>
+                            </div>
+
+                        </div>
+
+                        <div class="soft-box mt-auto">
+                            <div class="d-flex flex-wrap gap-3">
+                                <a href="{% url 'root:legal_text' %}" class="btn btn-outline-custom">
+                                    <i class="bi bi-journal-text ms-1"></i>
+                                    النصوص القانونية
+                                </a>
+
+                                <a href="{% url 'tracking:track_application' %}" class="btn btn-primary-custom">
+                                    <i class="bi bi-search ms-1"></i>
+                                    تتبع الطلب
+                                </a>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+<style>
+.poste-filter-wrapper {
+    margin-bottom: 1.5rem;
+}
+
+.poste-filter-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.poste-filter-item {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: 86px;
+    padding: 14px 18px;
+    border: 1.5px solid #20c997;
+    border-radius: 18px;
+    background: #fff;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.poste-filter-item:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.06);
+}
+
+.poste-filter-item .filter-title {
+    font-weight: 700;
+    font-size: 1.05rem;
+    color: #12b886;
+    margin-bottom: 4px;
+    line-height: 1.6;
+}
+
+.poste-filter-item .filter-subtitle {
+    font-size: 0.85rem;
+    color: #6c757d;
+    line-height: 1.7;
+}
+
+.poste-filter-item.active {
+    background: linear-gradient(135deg, #1fbf96 0%, #149f7f 100%);
+    border-color: #1fbf96;
+    box-shadow: 0 10px 24px rgba(31, 191, 150, 0.22);
+}
+
+.poste-filter-item.active .filter-title,
+.poste-filter-item.active .filter-subtitle {
+    color: #fff;
+}
+
+.poste-item-card {
+    border: 1px solid #dfe7e4;
+    border-radius: 24px;
+    padding: 18px;
+    background: #fff;
+    transition: all 0.2s ease;
+}
+
+.poste-item-card:hover {
+    border-color: rgba(31, 191, 150, 0.45);
+    box-shadow: 0 12px 28px rgba(13, 110, 253, 0.05);
+    transform: translateY(-1px);
+}
+
+.poste-item-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+}
+
+.poste-type-badge {
+    padding: 0.55rem 0.9rem;
+    border-radius: 999px;
+}
+
+.poste-meta-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 0.42rem 0.75rem;
+    border-radius: 999px;
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    color: #495057;
+    font-size: 0.84rem;
+    font-weight: 600;
+}
+
+.poste-deadline {
+    color: #b45309;
+    background: #fff7ed;
+    border: 1px solid #fed7aa;
+    border-radius: 999px;
+    padding: 0.4rem 0.75rem;
+    font-weight: 600;
+}
+
+.poste-title {
+    font-size: 1.28rem;
+    line-height: 1.65;
+    color: var(--primary-dark);
+    font-weight: 800;
+    margin: 0;
+}
+
+.poste-structure {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.poste-structure-line {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    color: #5f6b76;
+    font-size: 0.95rem;
+    line-height: 1.8;
+}
+
+.poste-structure-line i {
+    color: #12b886;
+    margin-top: 2px;
+    font-size: 0.95rem;
+}
+
+.poste-description {
+    color: #6c757d;
+    font-size: 0.97rem;
+    line-height: 1.95;
+    margin: 0;
+}
+
+.poste-legal-box {
+    padding: 12px 14px;
+    border-radius: 16px;
+    background: #f8faf9;
+    border: 1px solid #edf2f0;
+}
+
+.poste-item-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 16px;
+    flex-wrap: wrap;
+}
+
+.btn-outline-secondary-custom {
+    border: 1px solid #ced4da;
+    color: #495057;
+    background: #fff;
+    border-radius: 14px;
+    padding-inline: 16px;
+}
+
+.btn-outline-secondary-custom:hover {
+    background: #f8f9fa;
+    color: #212529;
+    border-color: #adb5bd;
+}
+
+@media (max-width: 991.98px) {
+    .poste-title {
+        font-size: 1.15rem;
+    }
+}
+
+@media (max-width: 767.98px) {
+    .poste-filter-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .poste-filter-item {
+        min-height: auto;
+    }
+
+    .poste-item-card {
+        padding: 16px;
+        border-radius: 20px;
+    }
+
+    .poste-item-actions {
+        justify-content: stretch;
+    }
+
+    .poste-item-actions .btn {
+        flex: 1 1 100%;
+    }
+}
+</style>
+
+{% endblock %}

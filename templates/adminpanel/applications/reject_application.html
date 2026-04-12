@@ -1,0 +1,168 @@
+{% extends "base/admin_base.html" %}
+
+{% block title %}رفض الطلب{% endblock %}
+{% block admin_page_title %}رفض الطلب{% endblock %}
+{% block admin_page_subtitle %}إدخال سبب الرفض وتحديد نوع القرار الإداري.{% endblock %}
+
+{% block admin_actions %}
+    <a href="{% url 'adminpanel:application_detail' application.pk %}" class="btn btn-admin-outline">
+        <i class="bi bi-arrow-right ms-1"></i>
+        الرجوع إلى التفاصيل
+    </a>
+{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+
+    <!-- LEFT -->
+    <div class="col-lg-8">
+
+        <!-- Request Summary -->
+        <div class="admin-card mb-4">
+            <div class="card-body">
+                <h2 class="h5 fw-bold mb-3">معلومات الطلب</h2>
+
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="border rounded-4 p-3">
+                            <div class="text-muted small">رقم الطلب</div>
+                            <div class="fw-bold">{{ application.application_number }}</div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="border rounded-4 p-3">
+                            <div class="text-muted small">المترشح</div>
+                            <div class="fw-bold">
+                                {{ application.candidate.full_name }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="border rounded-4 p-3">
+                            <div class="text-muted small">المنصب</div>
+                            <div class="fw-bold">{{ application.poste }}</div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="border rounded-4 p-3">
+                            <div class="text-muted small">الحالة الحالية</div>
+                            <div class="fw-bold">{{ application.get_status_display }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- FORM -->
+        <div class="admin-card">
+            <div class="card-body">
+
+                <h2 class="h5 fw-bold mb-3">إدخال سبب الرفض</h2>
+
+                <form method="post" novalidate>
+                    {% csrf_token %}
+
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {{ form.non_field_errors }}
+                        </div>
+                    {% endif %}
+
+                    <!-- TYPE -->
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">نوع الرفض</label>
+
+                        <div class="d-flex flex-column gap-2">
+                            <div class="form-check">
+                                <input type="radio" name="rejection_type" value="preliminary" class="form-check-input" checked>
+                                <label class="form-check-label">
+                                    رفض أولي
+                                </label>
+                            </div>
+
+                            <div class="form-check">
+                                <input type="radio" name="rejection_type" value="final" class="form-check-input">
+                                <label class="form-check-label">
+                                    رفض نهائي
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- REASON -->
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">
+                            سبب الرفض <span class="text-danger">*</span>
+                        </label>
+
+                        <textarea
+                            name="rejection_reason"
+                            class="form-control"
+                            rows="5"
+                            placeholder="أدخل سبب الرفض بشكل واضح..."
+                            required
+                        ></textarea>
+                    </div>
+
+                    <!-- VISIBILITY -->
+                    <div class="mb-4">
+                        <div class="form-check">
+                            <input type="checkbox" name="visible_to_candidate" class="form-check-input" checked>
+                            <label class="form-check-label">
+                                إظهار سبب الرفض للمترشح
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- SUBMIT -->
+                    <div class="d-flex justify-content-between gap-3">
+                        <a href="{% url 'adminpanel:application_detail' application.pk %}" class="btn btn-admin-outline">
+                            إلغاء
+                        </a>
+
+                        <button type="submit" class="btn btn-danger">
+                            <i class="bi bi-x-circle ms-1"></i>
+                            تأكيد الرفض
+                        </button>
+                    </div>
+
+                </form>
+
+            </div>
+        </div>
+
+    </div>
+
+    <!-- RIGHT -->
+    <div class="col-lg-4">
+
+        <div class="admin-card mb-4">
+            <div class="card-body">
+                <h3 class="h6 fw-bold mb-3">تنبيهات مهمة</h3>
+
+                <ul class="text-muted mb-0 pe-3">
+                    <li>سبب الرفض إلزامي.</li>
+                    <li>الرفض الأولي يمكن أن يكون قابلًا للمراجعة لاحقًا.</li>
+                    <li>الرفض النهائي ينهي مسار الطلب.</li>
+                    <li>يمكنك اختيار إظهار السبب للمترشح أو إبقائه داخليًا.</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="admin-card">
+            <div class="card-body">
+                <h3 class="h6 fw-bold mb-3">معلومة تقنية</h3>
+                <p class="text-muted small mb-0">
+                    سيتم تسجيل هذا القرار داخل سجل التتبع (Tracking)
+                    مع تحديد ما إذا كان مرئيًا للمترشح.
+                </p>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+{% endblock %}

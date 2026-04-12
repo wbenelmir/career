@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="utf-8">
+    <style>
+        @page { size: A4; margin: 18mm; }
+
+        body {
+            font-family: Arial, sans-serif;
+            direction: rtl;
+            color: #222;
+            font-size: 14px;
+            line-height: 1.8;
+        }
+
+        .wrapper {
+            border: 1px solid #dfe9e4;
+            border-radius: 16px;
+            padding: 24px;
+        }
+
+        .title {
+            color: #145c4c;
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 24px;
+        }
+
+        .box {
+            background: #f8fbfa;
+            border: 1px solid #e6efea;
+            border-radius: 12px;
+            padding: 14px 16px;
+            margin-bottom: 16px;
+        }
+
+        .label {
+            color: #666;
+            font-size: 12px;
+        }
+
+        .value {
+            font-size: 16px;
+            font-weight: bold;
+            color: #111;
+        }
+
+        .qr {
+            text-align: center;
+            margin-top: 24px;
+        }
+
+        .qr img {
+            width: 170px;
+            height: 170px;
+        }
+
+        .footer-note {
+            margin-top: 18px;
+            color: #666;
+            font-size: 12px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="wrapper">
+        <div class="title">وصل تسجيل طلب الترشح</div>
+        <div class="subtitle">تم استلام الطلب بنجاح داخل المنصة.</div>
+
+        <div class="box">
+            <div class="label">رقم الطلب</div>
+            <div class="value">{{ application.application_number }}</div>
+        </div>
+
+        <div class="box">
+            <div class="label">رمز التتبع</div>
+            <div class="value">{{ application.tracking_code }}</div>
+        </div>
+
+        <div class="box">
+            <div class="label">المنصب</div>
+            <div class="value">{{ application.poste.title }}</div>
+        </div>
+
+        <div class="box">
+            <div class="label">المترشح</div>
+            <div class="value">{{ application.candidate.first_name }} {{ application.candidate.last_name }}</div>
+        </div>
+
+        {% if application.submitted_at %}
+            <div class="box">
+                <div class="label">تاريخ الإرسال</div>
+                <div class="value">{{ application.submitted_at|date:"Y-m-d H:i" }}</div>
+            </div>
+        {% endif %}
+
+        <div class="qr">
+            <img src="data:image/png;base64,{{ qr_code_base64 }}" alt="QR">
+            <div class="footer-note">
+                امسح هذا الرمز للانتقال مباشرة إلى صفحة تتبع الطلب.
+            </div>
+        </div>
+    </div>
+</body>
+</html>

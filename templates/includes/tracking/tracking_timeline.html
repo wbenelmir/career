@@ -1,0 +1,57 @@
+{% if timeline %}
+    <div class="position-relative">
+        {% for item in timeline %}
+            <div class="d-flex gap-3 {% if not forloop.last %}mb-4{% endif %}">
+                <div class="flex-shrink-0 d-flex flex-column align-items-center">
+                    <span class="rounded-circle d-inline-flex align-items-center justify-content-center"
+                          style="width: 18px; height: 18px; background-color: var(--primary-color); margin-top: 4px;"></span>
+                    {% if not forloop.last %}
+                        <span style="width: 2px; flex: 1; background-color: #dbe4ea; min-height: 48px; margin-top: 6px;"></span>
+                    {% endif %}
+                </div>
+
+                <div class="flex-grow-1 border rounded-4 p-3">
+                    <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-2">
+                        <div class="fw-bold">
+                            {% if item.status == "submitted" %}
+                                تم استلام الطلب
+                            {% elif item.status == "under_review" %}
+                                قيد الدراسة
+                            {% elif item.status == "incomplete" %}
+                                الملف غير مكتمل
+                            {% elif item.status == "preselected" %}
+                                تم الانتقاء الأولي
+                            {% elif item.status == "preliminary_rejected" %}
+                                مرفوض أوليًا
+                            {% elif item.status == "final_accepted" %}
+                                مقبول نهائيًا
+                            {% elif item.status == "final_rejected" %}
+                                مرفوض نهائيًا
+                            {% elif item.status == "waiting_list" %}
+                                قائمة الانتظار
+                            {% else %}
+                                {{ item.status }}
+                            {% endif %}
+                        </div>
+
+                        <div class="text-muted small">
+                            {{ item.created_at }}
+                        </div>
+                    </div>
+
+                    {% if item.note %}
+                        <div class="text-muted small" style="line-height: 1.9;">
+                            {{ item.note }}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="empty-state py-4">
+        <i class="bi bi-clock-history"></i>
+        <h5 class="fw-bold mb-2">لا توجد مراحل معروضة</h5>
+        <p class="mb-0">لم يتم العثور على سجل زمني متاح لهذا الطلب.</p>
+    </div>
+{% endif %}

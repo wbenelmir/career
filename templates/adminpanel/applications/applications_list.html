@@ -1,0 +1,216 @@
+{% extends "base/admin_base.html" %}
+
+{% block title %}إدارة الطلبات | لوحة الإدارة{% endblock %}
+{% block admin_page_title %}إدارة الطلبات{% endblock %}
+{% block admin_page_subtitle %}استعراض طلبات الترشح والبحث فيها وتصفيتها حسب الحالة والمنصب والأهلية.{% endblock %}
+
+{% block admin_actions %}
+    <a href="{% url 'dashboard:dashboard_home' %}" class="btn btn-admin-outline">
+        <i class="bi bi-grid ms-1"></i>
+        لوحة التحكم
+    </a>
+{% endblock %}
+
+{% block content %}
+<div class="admin-card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3 align-items-end">
+
+            <div class="col-md-4">
+                <label for="q" class="form-label fw-bold">بحث</label>
+                <input
+                    type="text"
+                    name="q"
+                    id="q"
+                    class="form-control"
+                    placeholder="رقم الطلب، رمز التتبع، الاسم، اللقب، رقم التعريف..."
+                    value="{{ search_query }}"
+                >
+            </div>
+
+            <div class="col-md-3">
+                <label for="status" class="form-label fw-bold">الحالة</label>
+                <select name="status" id="status" class="form-select">
+                    <option value="">كل الحالات</option>
+                    {% for value, label in status_choices %}
+                        <option value="{{ value }}" {% if status_filter == value %}selected{% endif %}>
+                            {{ label }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="col-md-3">
+                <label for="poste" class="form-label fw-bold">المنصب</label>
+                <select name="poste" id="poste" class="form-select">
+                    <option value="">كل المناصب</option>
+                    {% for poste in postes %}
+                        <option value="{{ poste.id }}" {% if poste_filter == poste.id|stringformat:"s" %}selected{% endif %}>
+                            {{ poste }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="col-md-2">
+                <label for="eligible" class="form-label fw-bold">الأهلية</label>
+                <select name="eligible" id="eligible" class="form-select">
+                    <option value="">الكل</option>
+                    <option value="true" {% if eligibility_filter == 'true' %}selected{% endif %}>مؤهل مبدئيًا</option>
+                    <option value="false" {% if eligibility_filter == 'false' %}selected{% endif %}>غير مؤهل مبدئيًا</option>
+                </select>
+            </div>
+
+            <div class="col-12 d-flex flex-wrap gap-2">
+                <button type="submit" class="btn btn-admin-primary">
+                    <i class="bi bi-funnel ms-1"></i>
+                    تصفية
+                </button>
+
+                <a href="{% url 'dashboard:applications_list' %}" class="btn btn-admin-outline">
+                    إعادة التعيين
+                </a>
+            </div>
+
+        </form>
+    </div>
+</div>
+
+<div class="admin-card">
+    <div class="card-body">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-3">
+            <h2 class="h5 fw-bold mb-0">قائمة الطلبات</h2>
+            <div class="text-muted small">
+                العدد الإجمالي:
+                <strong>{{ page_obj.paginator.count }}</strong>
+            </div>
+        </div>
+
+        {% if applications %}
+            <div class="table-responsive">
+                <table class="table align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>رقم الطلب</th>
+                            <th>المترشح</th>
+                            <th>المنصب</th>
+                            <th>تاريخ الإنشاء</th>
+                            <th>الأهلية</th>
+                            <th>الحالة</th>
+                            <th>إجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for application in applications %}
+                            <tr>
+                                <td>
+                                    <div class="fw-bold">{{ application.application_number|default:"—" }}</div>
+                                    {% if application.tracking_code %}
+                                        <div class="text-muted small">{{ application.tracking_code }}</div>
+                                    {% endif %}
+                                </td>
+
+                                <td>
+                                    <div class="fw-bold">{{ application.candidate.full_name }}</div>
+                                    {% if application.candidate.email %}
+                                        <div class="text-muted small">{{ application.candidate.email }}</div>
+                                    {% endif %}
+                                    {% if application.candidate.national_id_number %}
+                                        <div class="text-muted small">{{ application.candidate.national_id_number }}</div>
+                                    {% endif %}
+                                </td>
+
+                                <td>{{ application.poste|default:"—" }}</td>
+
+                                <td>
+                                    {% if application.created_at %}
+                                        {{ application.created_at|date:"Y-m-d H:i" }}
+                                    {% else %}
+                                        <span class="text-muted">—</span>
+                                    {% endif %}
+                                </td>
+
+                                <td>
+                                    {% if application.is_eligible %}
+                                        <span class="status-chip status-accepted">مؤهل</span>
+                                    {% else %}
+                                        <span class="status-chip status-incomplete">غير مؤهل</span>
+                                    {% endif %}
+                                </td>
+
+                                <td>
+                                    {% if application.status == 'submitted' %}
+                                        <span class="status-chip status-submitted">مرسل</span>
+                                    {% elif application.status == 'under_review' %}
+                                        <span class="status-chip status-under-review">قيد الدراسة</span>
+                                    {% elif application.status == 'incomplete' %}
+                                        <span class="status-chip status-incomplete">ملف ناقص</span>
+                                    {% elif application.status == 'preselected' %}
+                                        <span class="status-chip status-preselected">مقبول أوليًا</span>
+                                    {% elif application.status == 'preliminary_rejected' or application.status == 'final_rejected' %}
+                                        <span class="status-chip status-rejected">{{ application.get_status_display }}</span>
+                                    {% elif application.status == 'final_accepted' %}
+                                        <span class="status-chip status-accepted">مقبول نهائيًا</span>
+                                    {% elif application.status == 'waiting_list' %}
+                                        <span class="status-chip status-waiting">قائمة الاحتياط</span>
+                                    {% elif application.status == 'draft' %}
+                                        <span class="status-chip status-submitted">مسودة</span>
+                                    {% else %}
+                                        <span class="status-chip status-submitted">{{ application.get_status_display }}</span>
+                                    {% endif %}
+                                </td>
+
+                                <td>
+                                    <a href="{% url 'dashboard:application_detail' application.pk %}" class="btn btn-sm btn-admin-primary">
+                                        عرض
+                                    </a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            {% if page_obj and page_obj.paginator.num_pages > 1 %}
+                <nav class="mt-4" aria-label="Pagination">
+                    <ul class="pagination justify-content-center mb-0">
+
+                        {% if page_obj.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link"
+                                   href="?page={{ page_obj.previous_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if poste_filter %}&poste={{ poste_filter }}{% endif %}{% if eligibility_filter %}&eligible={{ eligibility_filter }}{% endif %}">
+                                    السابق
+                                </a>
+                            </li>
+                        {% endif %}
+
+                        <li class="page-item active">
+                            <span class="page-link">
+                                {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}
+                            </span>
+                        </li>
+
+                        {% if page_obj.has_next %}
+                            <li class="page-item">
+                                <a class="page-link"
+                                   href="?page={{ page_obj.next_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if poste_filter %}&poste={{ poste_filter }}{% endif %}{% if eligibility_filter %}&eligible={{ eligibility_filter }}{% endif %}">
+                                    التالي
+                                </a>
+                            </li>
+                        {% endif %}
+
+                    </ul>
+                </nav>
+            {% endif %}
+        {% else %}
+            <div class="text-center py-5">
+                <i class="bi bi-folder2-open fs-1 text-muted d-block mb-3"></i>
+                <h3 class="h5 fw-bold">لا توجد طلبات مطابقة</h3>
+                <p class="text-muted mb-0">
+                    لم يتم العثور على نتائج وفق معايير البحث أو التصفية الحالية.
+                </p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

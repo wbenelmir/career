@@ -1,0 +1,455 @@
+{% extends "base/admin_base.html" %}
+
+{% block title %}تفاصيل الطلب | لوحة الإدارة{% endblock %}
+{% block admin_page_title %}تفاصيل الطلب{% endblock %}
+{% block admin_page_subtitle %}مراجعة الملف، الوثائق، سجل التتبع، والإجراءات الإدارية المتاحة.{% endblock %}
+
+{% block admin_actions %}
+    <a href="{% url 'dashboard:applications_list' %}" class="btn btn-admin-outline">
+        <i class="bi bi-arrow-right ms-1"></i>
+        الرجوع إلى قائمة الطلبات
+    </a>
+{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+
+    <div class="col-xl-8">
+
+        <!-- بيانات الطلب -->
+        <div class="admin-card mb-4">
+            <div class="card-body">
+                <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-3">
+                    <div>
+                        <h2 class="h5 fw-bold mb-1">بيانات الطلب</h2>
+                        <p class="text-muted mb-0">عرض عام للحالة الحالية ومعلومات التعريف بالطلب.</p>
+                    </div>
+
+                    <div>
+                        {% if application.status == 'submitted' %}
+                            <span class="status-chip status-submitted">تم الاستلام</span>
+                        {% elif application.status == 'under_review' %}
+                            <span class="status-chip status-under-review">قيد الدراسة</span>
+                        {% elif application.status == 'incomplete' %}
+                            <span class="status-chip status-incomplete">ملف ناقص</span>
+                        {% elif application.status == 'preselected' %}
+                            <span class="status-chip status-preselected">مقبول أوليًا</span>
+                        {% elif application.status == 'preliminary_rejected' or application.status == 'final_rejected' %}
+                            <span class="status-chip status-rejected">{{ application.get_status_display }}</span>
+                        {% elif application.status == 'final_accepted' %}
+                            <span class="status-chip status-accepted">مقبول نهائيًا</span>
+                        {% elif application.status == 'waiting_list' %}
+                            <span class="status-chip status-waiting">قائمة الاحتياط</span>
+                        {% else %}
+                            <span class="status-chip status-submitted">{{ application.get_status_display }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="border rounded-4 p-3 h-100">
+                            <div class="text-muted small mb-1">رقم الطلب</div>
+                            <div class="fw-bold">{{ application.application_number|default:"—" }}</div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="border rounded-4 p-3 h-100">
+                            <div class="text-muted small mb-1">رمز التتبع</div>
+                            <div class="fw-bold">{{ application.tracking_code|default:"—" }}</div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="border rounded-4 p-3 h-100">
+                            <div class="text-muted small mb-1">المنصب</div>
+                            <div class="fw-bold">{{ poste|default:"—" }}</div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="border rounded-4 p-3 h-100">
+                            <div class="text-muted small mb-1">تاريخ الإرسال</div>
+                            <div class="fw-bold">
+                                {% if application.submitted_at %}
+                                    {{ application.submitted_at|date:"Y-m-d H:i" }}
+                                {% else %}
+                                    —
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="border rounded-4 p-3 h-100">
+                            <div class="text-muted small mb-1">آخر تحديث</div>
+                            <div class="fw-bold">{{ application.updated_at|date:"Y-m-d H:i" }}</div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="border rounded-4 p-3 h-100">
+                            <div class="text-muted small mb-1">الأهلية المبدئية</div>
+                            <div class="fw-bold">
+                                {% if application.is_eligible %}مؤهل{% else %}غير مؤهل{% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- بيانات المترشح -->
+        <div class="admin-card mb-4">
+            <div class="card-body">
+                <h2 class="h5 fw-bold mb-3">بيانات المترشح</h2>
+
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="border rounded-4 p-3 h-100">
+                            <div class="text-muted small mb-1">الاسم واللقب</div>
+                            <div class="fw-bold">{{ candidate.full_name }}</div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="border rounded-4 p-3 h-100">
+                            <div class="text-muted small mb-1">الجنس</div>
+                            <div class="fw-bold">{{ candidate.get_gender_display|default:"—" }}</div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="border rounded-4 p-3 h-100">
+                            <div class="text-muted small mb-1">تاريخ الميلاد</div>
+                            <div class="fw-bold">{{ candidate.date_of_birth|default:"—" }}</div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="border rounded-4 p-3 h-100">
+                            <div class="text-muted small mb-1">مكان الميلاد</div>
+                            <div class="fw-bold">{{ candidate.place_of_birth|default:"—" }}</div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="border rounded-4 p-3 h-100">
+                            <div class="text-muted small mb-1">رقم التعريف الوطني</div>
+                            <div class="fw-bold">{{ candidate.national_id_number|default:"—" }}</div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="border rounded-4 p-3 h-100">
+                            <div class="text-muted small mb-1">البريد الإلكتروني</div>
+                            <div class="fw-bold">{{ candidate.email|default:"—" }}</div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="border rounded-4 p-3 h-100">
+                            <div class="text-muted small mb-1">رقم الهاتف</div>
+                            <div class="fw-bold">{{ candidate.phone_number|default:"—" }}</div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="border rounded-4 p-3 h-100">
+                            <div class="text-muted small mb-1">الولاية / البلدية</div>
+                            <div class="fw-bold">
+                                {{ candidate.wilaya|default:"—" }}
+                                {% if candidate.commune %} / {{ candidate.commune }}{% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-12">
+                        <div class="border rounded-4 p-3 h-100">
+                            <div class="text-muted small mb-1">العنوان</div>
+                            <div class="fw-bold">{{ candidate.address|default:"—" }}</div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="border rounded-4 p-3 h-100">
+                            <div class="text-muted small mb-1">الإدارة الحالية</div>
+                            <div class="fw-bold">{{ candidate.current_administration|default:"—" }}</div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="border rounded-4 p-3 h-100">
+                            <div class="text-muted small mb-1">الرتبة الحالية</div>
+                            <div class="fw-bold">{{ candidate.current_position_grade|default:"—" }}</div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="border rounded-4 p-3 h-100">
+                            <div class="text-muted small mb-1">الوظيفة الحالية</div>
+                            <div class="fw-bold">{{ candidate.current_function|default:"—" }}</div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="border rounded-4 p-3 h-100">
+                            <div class="text-muted small mb-1">موظف مرسم</div>
+                            <div class="fw-bold">{% if candidate.is_tenured_employee %}نعم{% else %}لا{% endif %}</div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="border rounded-4 p-3 h-100">
+                            <div class="text-muted small mb-1">سنوات الأقدمية</div>
+                            <div class="fw-bold">{{ candidate.years_of_seniority }}</div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="border rounded-4 p-3 h-100">
+                            <div class="text-muted small mb-1">سنوات الخدمة الفعلية</div>
+                            <div class="fw-bold">{{ candidate.years_of_effective_service }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- الوثائق -->
+        <div class="admin-card mb-4">
+            <div class="card-body">
+                <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-3">
+                    <h2 class="h5 fw-bold mb-0">الوثائق المرفوعة</h2>
+                    {% if not is_complete %}
+                        <span class="status-chip status-incomplete">الملف غير مكتمل</span>
+                    {% endif %}
+                </div>
+
+                {% if documents %}
+                    <div class="table-responsive">
+                        <table class="table align-middle mb-0">
+                            <thead>
+                                <tr>
+                                    <th>نوع الوثيقة</th>
+                                    <th>اسم الملف</th>
+                                    <th>تاريخ الرفع</th>
+                                    <th>الملف</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for doc in documents %}
+                                    <tr>
+                                        <td>{{ doc.document_type.name }}</td>
+                                        <td>{{ doc.original_filename|default:"—" }}</td>
+                                        <td>{{ doc.uploaded_at|date:"Y-m-d H:i" }}</td>
+                                        <td>
+                                            <a href="{{ doc.file.url }}" target="_blank" class="btn btn-sm btn-admin-outline">
+                                                فتح
+                                            </a>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p class="text-muted mb-0">لا توجد وثائق مرفوعة.</p>
+                {% endif %}
+
+                {% if missing_documents %}
+                    <div class="alert alert-warning mt-3 mb-0">
+                        <div class="fw-bold mb-2">الوثائق الناقصة:</div>
+                        <ul class="mb-0 pe-3">
+                            {% for doc in missing_documents %}
+                                <li>{{ doc.name }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- سجل التتبع -->
+        <div class="admin-card">
+            <div class="card-body">
+                <h2 class="h5 fw-bold mb-3">سجل التتبع</h2>
+
+                {% if tracking_entries %}
+                    <div class="d-flex flex-column gap-3">
+                        {% for entry in tracking_entries %}
+                            <div class="border rounded-4 p-3">
+                                <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
+                                    <div class="fw-bold">{{ entry.get_status_display }}</div>
+                                    <div class="text-muted small">{{ entry.created_at|date:"Y-m-d H:i" }}</div>
+                                </div>
+
+                                {% if entry.note %}
+                                    <div class="text-muted mb-2" style="line-height: 1.8;">
+                                        {{ entry.note }}
+                                    </div>
+                                {% endif %}
+
+                                <div class="small text-muted">
+                                    ظاهر للمترشح:
+                                    {% if entry.is_visible_to_candidate %}نعم{% else %}لا{% endif %}
+                                    {% if entry.changed_by %}
+                                        | بواسطة: {{ entry.changed_by }}
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-muted mb-0">لا توجد سجلات تتبع حتى الآن.</p>
+                {% endif %}
+            </div>
+        </div>
+
+    </div>
+
+    <div class="col-xl-4">
+
+        <!-- تحديث الحالة -->
+        <div class="admin-card mb-4">
+            <div class="card-body">
+                <h2 class="h5 fw-bold mb-3">تحديث الحالة</h2>
+
+                <form method="post" novalidate>
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="update_status">
+
+                    {% if status_form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {{ status_form.non_field_errors }}
+                        </div>
+                    {% endif %}
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">{{ status_form.status.label }}</label>
+                        {{ status_form.status }}
+                        {% if status_form.status.errors %}
+                            <div class="text-danger small mt-2">{{ status_form.status.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">{{ status_form.rejection_reason.label }}</label>
+                        {{ status_form.rejection_reason }}
+                        {% if status_form.rejection_reason.errors %}
+                            <div class="text-danger small mt-2">{{ status_form.rejection_reason.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">{{ status_form.admin_notes.label }}</label>
+                        {{ status_form.admin_notes }}
+                        {% if status_form.admin_notes.errors %}
+                            <div class="text-danger small mt-2">{{ status_form.admin_notes.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <button type="submit" class="btn btn-admin-primary w-100">
+                        حفظ تحديث الحالة
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- إضافة تتبع -->
+        <div class="admin-card mb-4">
+            <div class="card-body">
+                <h2 class="h5 fw-bold mb-3">إضافة سجل تتبع</h2>
+
+                <form method="post" novalidate>
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="add_tracking">
+
+                    {% if tracking_form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {{ tracking_form.non_field_errors }}
+                        </div>
+                    {% endif %}
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">{{ tracking_form.status.label }}</label>
+                        {{ tracking_form.status }}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">{{ tracking_form.note.label }}</label>
+                        {{ tracking_form.note }}
+                    </div>
+
+                    <div class="form-check mb-3">
+                        {{ tracking_form.is_visible_to_candidate }}
+                        <label class="form-check-label ms-2">
+                            {{ tracking_form.is_visible_to_candidate.label }}
+                        </label>
+                    </div>
+
+                    <button type="submit" class="btn btn-admin-outline w-100">
+                        إضافة سجل تتبع
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- برمجة المقابلة -->
+        <div class="admin-card mb-4">
+            <div class="card-body">
+                <h2 class="h5 fw-bold mb-3">برمجة المقابلة</h2>
+
+                <form method="post" novalidate>
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="schedule_interview">
+
+                    {% if interview_form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {{ interview_form.non_field_errors }}
+                        </div>
+                    {% endif %}
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">{{ interview_form.interview_date.label }}</label>
+                        {{ interview_form.interview_date }}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">{{ interview_form.interview_time.label }}</label>
+                        {{ interview_form.interview_time }}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">{{ interview_form.location.label }}</label>
+                        {{ interview_form.location }}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">{{ interview_form.note.label }}</label>
+                        {{ interview_form.note }}
+                    </div>
+
+                    <button type="submit" class="btn btn-admin-primary w-100">
+                        حفظ برمجة المقابلة
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        {% if application.rejection_reason %}
+            <div class="admin-card">
+                <div class="card-body">
+                    <h2 class="h5 fw-bold mb-3">سبب الرفض الحالي</h2>
+                    <div class="alert alert-danger mb-0">
+                        {{ application.rejection_reason }}
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+
+    </div>
+
+</div>
+{% endblock %}

@@ -1,0 +1,348 @@
+{% extends "base/public_base.html" %}
+
+{% block title %}النصوص القانونية | منصة الترشح{% endblock %}
+
+{% block page_header %}
+    {% include "includes/public/page_header.html" with page_title="النصوص القانونية والتنظيمية" page_subtitle="الإطار المرجعي المؤطر لعملية الترشح ودراسة الملفات عبر المنصة." %}
+{% endblock %}
+
+{% block content %}
+<section class="section-padding pt-0">
+    <div class="container">
+        <div class="row g-4">
+
+            <div class="col-lg-8">
+
+                <div class="custom-card mb-4">
+                    <div class="card-body p-4 p-lg-5">
+                        <h2 class="section-title">المرجع القانوني</h2>
+
+                        <p class="text-muted mb-3" style="line-height: 2;">
+                            تتم معالجة طلبات الترشح المعروضة عبر هذه المنصة في إطار النصوص القانونية
+                            والتنظيمية المعمول بها، ولا سيما النصوص المرجعية التي تؤطر شروط الترشح
+                            وكيفيات دراسة الملفات ومراحل المعالجة الإدارية.
+                        </p>
+
+                        <div class="legal-filter-wrapper mb-4">
+                            <div class="legal-filter-grid">
+                                <a href="{% url 'root:legal_text' %}"
+                                   class="legal-filter-item {% if not selected_type %}active{% endif %}">
+                                    <span class="filter-title">الكل</span>
+                                    <span class="filter-subtitle">جميع المراجع القانونية</span>
+                                </a>
+
+                                {% for value, label in reference_types %}
+                                    <a href="{% url 'root:legal_text' %}?type={{ value }}"
+                                       class="legal-filter-item {% if selected_type == value %}active{% endif %}">
+                                        <span class="filter-title">{{ label }}</span>
+                                        <span class="filter-subtitle">عرض المراجع ضمن هذا التصنيف</span>
+                                    </a>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        {% if legal_references %}
+                            <div class="d-flex flex-column gap-3">
+                                {% for ref in legal_references %}
+                                    <div class="soft-box legal-main-box">
+                                        <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+                                            <span class="badge-soft-primary">
+                                                {{ ref.get_reference_type_display }}
+                                            </span>
+                                        </div>
+
+                                        <h5 class="fw-bold mb-2">{{ ref.title }}</h5>
+
+                                        {% if ref.reference_number %}
+                                            <p class="text-muted mb-1">
+                                                <strong>رقم المرجع:</strong>
+                                                {{ ref.reference_number }}
+                                            </p>
+                                        {% endif %}
+
+                                        {% if ref.published_date %}
+                                            <p class="text-muted mb-2">
+                                                <strong>تاريخ النشر:</strong>
+                                                {{ ref.published_date|date:"Y-m-d" }}
+                                            </p>
+                                        {% endif %}
+
+                                        {% if ref.description %}
+                                            <p class="mb-0" style="line-height: 1.9;">
+                                                {{ ref.description }}
+                                            </p>
+                                        {% endif %}
+
+                                        {% if ref.document_url %}
+                                            <div class="mt-3">
+                                                <a href="{{ ref.document_url }}"
+                                                   target="_blank"
+                                                   rel="noopener"
+                                                   class="btn btn-outline-custom btn-sm">
+                                                    <i class="bi bi-box-arrow-up-left ms-1"></i>
+                                                    الاطلاع على النص
+                                                </a>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="alert alert-light mb-0" style="line-height: 1.9;">
+                                لا توجد مراجع قانونية متاحة ضمن هذا التصنيف حاليًا.
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="custom-card mb-4">
+                    <div class="card-body p-4">
+                        <h2 class="section-title">ماذا يعني هذا للمترشح؟</h2>
+
+                        <div class="row g-3">
+
+                            <div class="col-md-6">
+                                <div class="soft-box h-100 d-flex align-items-start gap-3">
+                                    <div class="badge-soft-success">
+                                        <i class="bi bi-check2-square"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="fw-bold mb-2">احترام الشروط</h6>
+                                        <p class="text-muted small mb-0" style="line-height: 1.9;">
+                                            يخضع الترشح للشروط والمعايير المحددة قانونًا أو تنظيميًا بالنسبة للمنصب المعني.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="soft-box h-100 d-flex align-items-start gap-3">
+                                    <div class="badge-soft-info">
+                                        <i class="bi bi-folder-check"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="fw-bold mb-2">مطابقة الملف</h6>
+                                        <p class="text-muted small mb-0" style="line-height: 1.9;">
+                                            يجب أن يكون الملف كاملاً وواضحًا، وأن تتطابق الوثائق المرفقة مع البيانات المصرح بها.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="soft-box h-100 d-flex align-items-start gap-3">
+                                    <div class="badge-soft-warning">
+                                        <i class="bi bi-hourglass-split"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="fw-bold mb-2">دراسة الطلب</h6>
+                                        <p class="text-muted small mb-0" style="line-height: 1.9;">
+                                            تتم دراسة الطلبات وفق حالات إدارية واضحة، مع إمكانية متابعة حالة الملف بعد الإرسال.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="soft-box h-100 d-flex align-items-start gap-3">
+                                    <div class="badge-soft-primary">
+                                        <i class="bi bi-info-circle"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="fw-bold mb-2">إظهار المعلومات الضرورية</h6>
+                                        <p class="text-muted small mb-0" style="line-height: 1.9;">
+                                            تعرض المنصة للمترشح المعلومات الأساسية المرتبطة بملفه دون كشف التفاصيل الداخلية الخاصة بالمعالجة.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                <div class="custom-card">
+                    <div class="card-body p-4">
+                        <h2 class="section-title">تنبيهات مهمة</h2>
+
+                        <div class="d-flex flex-column gap-3">
+
+                            <div class="soft-box d-flex align-items-start gap-3">
+                                <div class="badge-soft-warning"><i class="bi bi-exclamation-triangle"></i></div>
+                                <div>
+                                    <h6 class="fw-bold mb-1">الالتزام بالشروط القانونية</h6>
+                                    <p class="text-muted small mb-0" style="line-height: 1.9;">
+                                        إيداع الطلب عبر المنصة لا يُعفي من احترام جميع الشروط القانونية والتنظيمية المعمول بها.
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div class="soft-box d-flex align-items-start gap-3">
+                                <div class="badge-soft-danger"><i class="bi bi-file-earmark-x"></i></div>
+                                <div>
+                                    <h6 class="fw-bold mb-1">اكتمال الملف</h6>
+                                    <p class="text-muted small mb-0" style="line-height: 1.9;">
+                                        عدم اكتمال الملف أو عدم مطابقة الوثائق قد يؤدي إلى تسجيل حالة نقص أو رفض الطلب وفق المعالجة الإدارية.
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div class="soft-box d-flex align-items-start gap-3">
+                                <div class="badge-soft-success"><i class="bi bi-hash"></i></div>
+                                <div>
+                                    <h6 class="fw-bold mb-1">رقم الطلب ورمز التتبع</h6>
+                                    <p class="text-muted small mb-0" style="line-height: 1.9;">
+                                        بعد الإرسال النهائي، يتم منح المترشح رقم طلب ورمز تتبع لمتابعة ملفه.
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div class="soft-box d-flex align-items-start gap-3">
+                                <div class="badge-soft-info"><i class="bi bi-eye"></i></div>
+                                <div>
+                                    <h6 class="fw-bold mb-1">المعلومات المعروضة في التتبع</h6>
+                                    <p class="text-muted small mb-0" style="line-height: 1.9;">
+                                        تُعرض للمترشح فقط البيانات والملاحظات المسموح بإظهارها ضمن فضاء التتبع.
+                                    </p>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="col-lg-4">
+                <div class="d-flex flex-column gap-4">
+
+                    <div class="custom-card">
+                        <div class="card-body p-4">
+                            <h3 class="section-title">روابط مرتبطة</h3>
+                            <div class="d-grid gap-2">
+                                <a href="{% url 'root:poste_list' %}" class="btn btn-outline-custom">
+                                    <i class="bi bi-briefcase ms-1"></i>
+                                    المناصب المفتوحة
+                                </a>
+
+                                <a href="{% url 'applications:start_application' %}" class="btn btn-primary-custom">
+                                    <i class="bi bi-send-check ms-1"></i>
+                                    ابدأ الترشح
+                                </a>
+
+                                <a href="{% url 'tracking:track_application' %}" class="btn btn-outline-custom">
+                                    <i class="bi bi-search ms-1"></i>
+                                    تتبع الطلب
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="custom-card">
+                        <div class="card-body p-4">
+                            <h3 class="section-title">ملاحظة</h3>
+
+                            <div class="soft-box d-flex align-items-start gap-3">
+                                <div class="badge-soft-info">
+                                    <i class="bi bi-journal-text"></i>
+                                </div>
+                                <div>
+                                    <h6 class="fw-bold mb-1">إرشاد للمترشح</h6>
+                                    <p class="text-muted small mb-0" style="line-height: 1.9;">
+                                        يُستحسن قراءة هذه الصفحة قبل الترشح لفهم الشروط العامة والإطار التنظيمي الذي
+                                        يؤطر دراسة الملفات ومعالجة الطلبات.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="custom-card">
+                        <div class="card-body p-4">
+                            <h3 class="section-title">قبل الشروع في الترشح</h3>
+                            <p class="text-muted mb-3" style="line-height: 1.9;">
+                                يُستحسن الاطلاع على الشروط العامة وتجهيز الوثائق المطلوبة قبل الانتقال إلى استمارة الترشح.
+                            </p>
+                            <a href="{% url 'applications:start_application' %}" class="btn btn-primary-custom w-100">
+                                <i class="bi bi-arrow-left-circle ms-1"></i>
+                                الانتقال إلى الترشح
+                            </a>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+<style>
+.legal-main-box {
+    border-radius: 18px;
+}
+
+.legal-filter-wrapper {
+    margin-bottom: 1.5rem;
+}
+
+.legal-filter-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.legal-filter-item {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: 86px;
+    padding: 14px 18px;
+    border: 1.5px solid #20c997;
+    border-radius: 18px;
+    background: #fff;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.legal-filter-item:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.06);
+}
+
+.legal-filter-item .filter-title {
+    font-weight: 700;
+    font-size: 1.02rem;
+    color: #12b886;
+    margin-bottom: 4px;
+    line-height: 1.6;
+}
+
+.legal-filter-item .filter-subtitle {
+    font-size: 0.85rem;
+    color: #6c757d;
+    line-height: 1.7;
+}
+
+.legal-filter-item.active {
+    background: linear-gradient(135deg, #1fbf96 0%, #149f7f 100%);
+    border-color: #1fbf96;
+    box-shadow: 0 10px 24px rgba(31, 191, 150, 0.22);
+}
+
+.legal-filter-item.active .filter-title,
+.legal-filter-item.active .filter-subtitle {
+    color: #fff;
+}
+
+@media (max-width: 767.98px) {
+    .legal-filter-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .legal-filter-item {
+        min-height: auto;
+    }
+}
+</style>
+{% endblock %}

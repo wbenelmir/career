@@ -1,0 +1,30 @@
+<div class="brand">
+    <h5>لوحة الإدارة</h5>
+    <p>منصة الترشح للمناصب</p>
+</div>
+
+<div class="sidebar-section-title">التنقل الرئيسي</div>
+
+<a href="{% url 'adminpanel:dashboard' %}" class="sidebar-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+    <i class="bi bi-grid"></i>
+    <span>لوحة التحكم</span>
+</a>
+
+<a href="{% url 'adminpanel:applications_list' %}" class="sidebar-link {% if request.resolver_match.url_name == 'applications_list' or request.resolver_match.url_name == 'application_detail' or request.resolver_match.url_name == 'reject_application' %}active{% endif %}">
+    <i class="bi bi-folder2-open"></i>
+    <span>الطلبات</span>
+</a>
+
+<div class="sidebar-section-title">روابط سريعة</div>
+
+<a href="{% url 'root:home' %}" class="sidebar-link">
+    <i class="bi bi-house-door"></i>
+    <span>الواجهة العمومية</span>
+</a>
+
+{% if user.is_authenticated %}
+    <a href="{% url 'admin:logout' %}" class="sidebar-link">
+        <i class="bi bi-box-arrow-right"></i>
+        <span>تسجيل الخروج</span>
+    </a>
+{% endif %}

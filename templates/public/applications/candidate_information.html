@@ -1,0 +1,508 @@
+{% extends "base/public_base.html" %}
+
+{% block title %}معلومات المترشح | منصة الترشح{% endblock %}
+
+{% block page_header %}
+    {% include "includes/public/page_header.html" with page_title="معلومات المترشح" page_subtitle="الخطوة الثانية: إدخال المعلومات الشخصية والمهنية ومعلومات الاتصال." %}
+{% endblock %}
+
+{% block content %}
+<section class="section-padding pt-0">
+    <div class="container">
+
+        {% include "includes/applications/stepper.html" with current_step=2 %}
+
+        <div class="row g-4 mt-1">
+
+            <div class="col-lg-8">
+
+                <div class="custom-card mb-4">
+                    <div class="card-body">
+                        <h2 class="section-title">المنصب المختار</h2>
+
+                        {% if selected_poste %}
+                            <div class="border rounded-4 p-4 bg-light">
+                                <h5 class="fw-bold mb-1">{{ selected_poste.title }}</h5>
+                                {% if selected_poste.direction %}
+                                    <p class="text-muted small mb-0">{{ selected_poste.direction }}</p>
+                                {% endif %}
+                            </div>
+                        {% else %}
+                            <div class="alert alert-warning mb-0">
+                                يرجى العودة واختيار المنصب أولاً.
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="custom-card">
+                    <div class="card-body">
+
+                        <h2 class="section-title">استمارة المعلومات</h2>
+                        <p class="section-subtitle">
+                            يرجى إدخال المعلومات بدقة. حفظ هذه المرحلة لا يعني الإرسال النهائي للطلب.
+                        </p>
+
+                        <form method="post" novalidate>
+                            {% csrf_token %}
+
+                            {% if form.non_field_errors %}
+                                <div class="alert alert-danger">
+                                    {% for error in form.non_field_errors %}
+                                        <div>{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+
+                            <div class="row g-4">
+
+                                <div class="col-12">
+                                    <h5 class="fw-bold">المعلومات الشخصية</h5>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label" for="{{ form.first_name.id_for_label }}">{{ form.first_name.label }}</label>
+                                    {{ form.first_name }}
+                                    {% if form.first_name.errors %}
+                                        <div class="text-danger small mt-2">
+                                            {% for error in form.first_name.errors %}
+                                                <div>{{ error }}</div>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label" for="{{ form.last_name.id_for_label }}">{{ form.last_name.label }}</label>
+                                    {{ form.last_name }}
+                                    {% if form.last_name.errors %}
+                                        <div class="text-danger small mt-2">
+                                            {% for error in form.last_name.errors %}
+                                                <div>{{ error }}</div>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label" for="{{ form.gender.id_for_label }}">{{ form.gender.label }}</label>
+                                    {{ form.gender }}
+                                    {% if form.gender.errors %}
+                                        <div class="text-danger small mt-2">
+                                            {% for error in form.gender.errors %}
+                                                <div>{{ error }}</div>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label" for="{{ form.date_of_birth.id_for_label }}">{{ form.date_of_birth.label }}</label>
+                                    {{ form.date_of_birth }}
+                                    {% if form.date_of_birth.errors %}
+                                        <div class="text-danger small mt-2">
+                                            {% for error in form.date_of_birth.errors %}
+                                                <div>{{ error }}</div>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label" for="{{ form.place_of_birth.id_for_label }}">{{ form.place_of_birth.label }}</label>
+                                    {{ form.place_of_birth }}
+                                    {% if form.place_of_birth.errors %}
+                                        <div class="text-danger small mt-2">
+                                            {% for error in form.place_of_birth.errors %}
+                                                <div>{{ error }}</div>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label" for="{{ form.national_id_number.id_for_label }}">{{ form.national_id_number.label }}</label>
+                                    {{ form.national_id_number }}
+                                    <div class="form-text text-muted small mt-1">
+                                        رقم التعريف الوطني (NIN) يجب أن يتكون من 18 رقمًا كما هو موجود في بطاقة التعريف البيومترية.
+                                    </div>
+                                    {% if form.national_id_number.errors %}
+                                        <div class="text-danger small mt-2">
+                                            {% for error in form.national_id_number.errors %}
+                                                <div>{{ error }}</div>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="col-12">
+                                    <h5 class="fw-bold">معلومات الاتصال</h5>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label" for="{{ form.email.id_for_label }}">{{ form.email.label }}</label>
+                                    {{ form.email }}
+                                    <div class="form-text text-muted small mt-1">
+                                        أدخل بريدًا إلكترونيًا صحيحًا لتصلك إشعارات دراسة الطلب.
+                                    </div>
+                                    {% if form.email.errors %}
+                                        <div class="text-danger small mt-2">
+                                            {% for error in form.email.errors %}
+                                                <div>{{ error }}</div>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label" for="{{ form.phone_number.id_for_label }}">{{ form.phone_number.label }}</label>
+                                    {{ form.phone_number }}
+                                    {% if form.phone_number.errors %}
+                                        <div class="text-danger small mt-2">
+                                            {% for error in form.phone_number.errors %}
+                                                <div>{{ error }}</div>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label" for="{{ form.wilaya.id_for_label }}">ولاية الإقامة</label>
+                                    {{ form.wilaya }}
+                                    <div class="form-text text-muted small mt-1">
+                                        اختر ولاية الإقامة الحالية. قد يُطلب لاحقًا وثيقة تثبت الإقامة.
+                                    </div>
+                                    {% if form.wilaya.errors %}
+                                        <div class="text-danger small mt-2">
+                                            {% for error in form.wilaya.errors %}
+                                                <div>{{ error }}</div>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label" for="{{ form.commune.id_for_label }}">{{ form.commune.label }}</label>
+                                    {{ form.commune }}
+                                    {% if form.commune.errors %}
+                                        <div class="text-danger small mt-2">
+                                            {% for error in form.commune.errors %}
+                                                <div>{{ error }}</div>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="col-12">
+                                    <label class="form-label" for="{{ form.address.id_for_label }}">{{ form.address.label }}</label>
+                                    {{ form.address }}
+                                    {% if form.address.errors %}
+                                        <div class="text-danger small mt-2">
+                                            {% for error in form.address.errors %}
+                                                <div>{{ error }}</div>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="col-12"><hr></div>
+
+                                <div class="col-12">
+                                    <h5 class="fw-bold">المعلومات المهنية</h5>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label" for="{{ form.current_administration.id_for_label }}">{{ form.current_administration.label }}</label>
+                                    {{ form.current_administration }}
+                                    {% if form.current_administration.errors %}
+                                        <div class="text-danger small mt-2">
+                                            {% for error in form.current_administration.errors %}
+                                                <div>{{ error }}</div>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label" for="{{ form.current_position_grade.id_for_label }}">{{ form.current_position_grade.label }}</label>
+                                    {{ form.current_position_grade }}
+                                    {% if form.current_position_grade.errors %}
+                                        <div class="text-danger small mt-2">
+                                            {% for error in form.current_position_grade.errors %}
+                                                <div>{{ error }}</div>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label" for="{{ form.current_function.id_for_label }}">{{ form.current_function.label }}</label>
+                                    {{ form.current_function }}
+                                    {% if form.current_function.errors %}
+                                        <div class="text-danger small mt-2">
+                                            {% for error in form.current_function.errors %}
+                                                <div>{{ error }}</div>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label" for="{{ form.tenure_decision_date.id_for_label }}">تاريخ قرار الترسيم</label>
+                                    {{ form.tenure_decision_date }}
+                                    <div class="form-text text-muted small mt-1">
+                                        أدخل تاريخ قرار الترسيم كما هو وارد في القرار أو المقرر الإداري، وهو شرط أساسي ضمن الملف.
+                                    </div>
+                                    {% if form.tenure_decision_date.errors %}
+                                        <div class="text-danger small mt-2">
+                                            {% for error in form.tenure_decision_date.errors %}
+                                                <div>{{ error }}</div>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label" for="{{ form.years_of_seniority.id_for_label }}">{{ form.years_of_seniority.label }}</label>
+                                    {{ form.years_of_seniority }}
+                                    <div class="form-text text-muted small mt-1">
+                                        سنوات الأقدمية: مدة الأقدمية المعتمدة في المسار المهني.
+                                    </div>
+                                    {% if form.years_of_seniority.errors %}
+                                        <div class="text-danger small mt-2">
+                                            {% for error in form.years_of_seniority.errors %}
+                                                <div>{{ error }}</div>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label" for="{{ form.years_of_effective_service.id_for_label }}">{{ form.years_of_effective_service.label }}</label>
+                                    {{ form.years_of_effective_service }}
+                                    <div class="form-text text-muted small mt-1">
+                                        سنوات الخدمة الفعلية: المدة التي عملت فيها فعليًا، ويجب ألا تكون أقل من سنوات الأقدمية.
+                                    </div>
+                                    {% if form.years_of_effective_service.errors %}
+                                        <div class="text-danger small mt-2">
+                                            {% for error in form.years_of_effective_service.errors %}
+                                                <div>{{ error }}</div>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+
+                            </div>
+
+                            <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mt-4">
+                                <a href="{% url 'applications:start_application' %}" class="btn btn-outline-custom">
+                                    <i class="bi bi-arrow-right-circle ms-1"></i>
+                                    رجوع
+                                </a>
+
+                                <button type="submit" class="btn btn-primary-custom">
+                                    حفظ ومتابعة
+                                    <i class="bi bi-arrow-left-circle ms-1"></i>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="col-lg-4">
+
+                <div class="custom-card mb-4">
+                    <div class="card-body">
+                        <h3 class="section-title">تعليمات</h3>
+                        <ul class="rtl-list text-muted mb-0">
+                            <li>املأ جميع المعلومات الأساسية بدقة.</li>
+                            <li>رقم التعريف الوطني يجب أن يكون صحيحًا وفريدًا.</li>
+                            <li>البريد الإلكتروني ورقم الهاتف ضروريان للتواصل.</li>
+                            <li>اختر ولاية الإقامة أولاً ليتم تحميل قائمة البلديات التابعة لها.</li>
+                            <li>قد يُطلب لاحقًا ما يثبت الإقامة حسب طبيعة الملف.</li>
+                            <li>تاريخ قرار الترسيم وثيقة مرجعية أساسية ضمن الملف.</li>
+                            <li>يمكنك متابعة إتمام الملف في الخطوات اللاحقة قبل الإرسال النهائي.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="custom-card">
+                    <div class="card-body">
+                        <h3 class="section-title">التقدم في العملية</h3>
+                        <div class="d-flex flex-column gap-3">
+                            <div class="d-flex align-items-center gap-3">
+                                <span class="badge-soft-success">✓</span>
+                                <span class="text-muted">اختيار المنصب</span>
+                            </div>
+                            <div class="d-flex align-items-center gap-3">
+                                <span class="badge-soft-primary">2</span>
+                                <span class="text-muted">معلومات المترشح</span>
+                            </div>
+                            <div class="d-flex align-items-center gap-3">
+                                <span class="badge-soft-info">3</span>
+                                <span class="text-muted">رفع الوثائق</span>
+                            </div>
+                            <div class="d-flex align-items-center gap-3">
+                                <span class="badge-soft-info">4</span>
+                                <span class="text-muted">مراجعة الطلب</span>
+                            </div>
+                            <div class="d-flex align-items-center gap-3">
+                                <span class="badge-soft-info">5</span>
+                                <span class="text-muted">الإرسال النهائي</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const wilayaSelect = document.getElementById("id_wilaya");
+    const communeSelect = document.getElementById("id_commune");
+    const communesApiUrl = "{{ communes_api_url }}";
+    const selectedCommuneId = "{{ selected_commune_id|default:'' }}";
+
+    if (wilayaSelect && communeSelect) {
+        function resetCommuneOptions(placeholder = "اختر البلدية") {
+            communeSelect.innerHTML = "";
+
+            const option = document.createElement("option");
+            option.value = "";
+            option.textContent = placeholder;
+            communeSelect.appendChild(option);
+        }
+
+        function setCommuneDisabled(disabled = true) {
+            communeSelect.disabled = disabled;
+        }
+
+        function loadCommunes(wilayaId, selectedValue = "") {
+            resetCommuneOptions("جار تحميل البلديات...");
+            setCommuneDisabled(true);
+
+            if (!wilayaId) {
+                resetCommuneOptions("اختر البلدية");
+                setCommuneDisabled(true);
+                return;
+            }
+
+            fetch(`${communesApiUrl}?wilaya_id=${encodeURIComponent(wilayaId)}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error("Failed to load communes");
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    resetCommuneOptions("اختر البلدية");
+
+                    if (data.communes && data.communes.length > 0) {
+                        data.communes.forEach(commune => {
+                            const option = document.createElement("option");
+                            option.value = commune.id;
+                            option.textContent = commune.name_fr;
+
+                            if (String(commune.id) === String(selectedValue)) {
+                                option.selected = true;
+                            }
+
+                            communeSelect.appendChild(option);
+                        });
+
+                        setCommuneDisabled(false);
+                    } else {
+                        resetCommuneOptions("لا توجد بلديات متاحة");
+                        setCommuneDisabled(true);
+                    }
+                })
+                .catch(() => {
+                    resetCommuneOptions("تعذر تحميل البلديات");
+                    setCommuneDisabled(true);
+                });
+        }
+
+        wilayaSelect.addEventListener("change", function () {
+            loadCommunes(this.value);
+        });
+
+        if (wilayaSelect.value) {
+            loadCommunes(wilayaSelect.value, selectedCommuneId);
+        } else {
+            resetCommuneOptions("اختر البلدية");
+            setCommuneDisabled(true);
+        }
+    }
+
+    const arabicOnlyFields = document.querySelectorAll('[data-arabic-only="true"]');
+    const allowedPattern = /[\u0600-\u06FF0-9\s\-\/\.\:\,]/;
+
+    const nationalIdField = document.getElementById("id_national_id_number");
+
+    if (nationalIdField) {
+        nationalIdField.addEventListener("input", function () {
+            this.value = this.value.replace(/\D/g, "").slice(0, 18);
+        });
+
+        nationalIdField.addEventListener("paste", function (e) {
+            e.preventDefault();
+            const pastedText = (e.clipboardData || window.clipboardData).getData("text");
+            this.value = pastedText.replace(/\D/g, "").slice(0, 18);
+        });
+    }
+
+    function filterArabicAllowed(value) {
+        return Array.from(value).filter(char => allowedPattern.test(char)).join('');
+    }
+
+    arabicOnlyFields.forEach(field => {
+        field.setAttribute(
+            'title',
+            'يسمح فقط بالحروف العربية والأرقام والرموز: - / . : ,'
+        );
+
+        field.addEventListener('beforeinput', function (e) {
+            if (!e.data) return;
+
+            const chars = Array.from(e.data);
+            const invalid = chars.some(char => !allowedPattern.test(char));
+
+            if (invalid) {
+                e.preventDefault();
+            }
+        });
+
+        field.addEventListener('input', function () {
+            const filtered = filterArabicAllowed(this.value);
+            if (this.value !== filtered) {
+                this.value = filtered;
+            }
+        });
+
+        field.addEventListener('paste', function (e) {
+            e.preventDefault();
+            const pastedText = (e.clipboardData || window.clipboardData).getData('text');
+            const filtered = filterArabicAllowed(pastedText);
+
+            const start = this.selectionStart || 0;
+            const end = this.selectionEnd || 0;
+            const currentValue = this.value;
+
+            this.value = currentValue.slice(0, start) + filtered + currentValue.slice(end);
+
+            const newPos = start + filtered.length;
+            this.setSelectionRange(newPos, newPos);
+        });
+    });
+});
+</script>
+{% endblock %}

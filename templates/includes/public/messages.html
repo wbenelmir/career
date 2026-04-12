@@ -1,0 +1,43 @@
+{% if messages %}
+<section class="py-3">
+    <div class="container">
+        {% for message in messages %}
+            <div class="alert
+                        {% if message.tags == 'success' %}alert-success
+                        {% elif message.tags == 'error' %}alert-danger
+                        {% elif message.tags == 'warning' %}alert-warning
+                        {% elif message.tags == 'info' %}alert-info
+                        {% else %}alert-secondary
+                        {% endif %}
+                        alert-dismissible fade show shadow-sm"
+                 role="alert">
+
+                <div class="d-flex align-items-start gap-2">
+
+                    <div class="pt-1">
+                        {% if message.tags == 'success' %}
+                            <i class="bi bi-check-circle-fill text-success"></i>
+                        {% elif message.tags == 'error' %}
+                            <i class="bi bi-x-circle-fill text-danger"></i>
+                        {% elif message.tags == 'warning' %}
+                            <i class="bi bi-exclamation-triangle-fill text-warning"></i>
+                        {% elif message.tags == 'info' %}
+                            <i class="bi bi-info-circle-fill text-primary"></i>
+                        {% else %}
+                            <i class="bi bi-bell-fill"></i>
+                        {% endif %}
+                    </div>
+
+                    <div class="flex-grow-1 small-muted">
+                        {{ message }}
+                    </div>
+                </div>
+
+                <button type="button" class="btn-close ms-2"
+                        data-bs-dismiss="alert"
+                        aria-label="إغلاق"></button>
+            </div>
+        {% endfor %}
+    </div>
+</section>
+{% endif %}

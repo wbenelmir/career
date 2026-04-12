@@ -1,0 +1,111 @@
+{% load static %}
+
+<footer class="bg-white border-top mt-5">
+    <div class="container py-4 py-lg-5">
+        <div class="row g-4 align-items-start">
+
+            <!-- Brand -->
+            <div class="col-lg-5">
+                <div class="d-flex align-items-center gap-2 mb-3">
+
+        <!-- LOGO + BRAND -->
+        <a class="navbar-brand d-flex align-items-center gap-3" href="{% url 'root:home' %}">
+            
+            <!-- شعار الوزارة -->
+            <img src="{% static 'assets/images/mkesm_logo.webp' %}" 
+                alt="شعار الوزارة"
+                class="navbar-logo">
+
+            <!-- عنوان المنصة كصورة -->
+            <img src="{% static 'assets/images/title_logo.webp' %}" 
+                alt="منصة الترشح للوظائف والمناصب العليا"
+                class="navbar-title-logo">
+
+        </a>
+                </div>
+
+                <p class="text-muted mb-0 lh-lg small-muted">
+                    منصة رقمية مخصصة لاستقبال ودراسة طلبات الترشح،
+                    تُمكّن المترشح من إيداع ملفه ومتابعة حالته بكل وضوح وسهولة.
+                </p>
+            </div>
+
+            <!-- Links -->
+            <div class="col-6 col-lg-2">
+                <h6 class="fw-bold mb-3">روابط مهمة</h6>
+                <ul class="list-unstyled mb-0">
+                    <li class="mb-2">
+                        <a href="{% url 'root:home' %}" class="footer-link">الرئيسية</a>
+                    </li>
+                    <li class="mb-2">
+                        <a href="{% url 'root:poste_list' %}" class="footer-link">المناصب المفتوحة</a>
+                    </li>
+                    <li class="mb-2">
+                        <a href="{% url 'tracking:track_application' %}" class="footer-link">تتبع الطلب</a>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Info -->
+            <div class="col-6 col-lg-2">
+                <h6 class="fw-bold mb-3">معلومات</h6>
+                <ul class="list-unstyled mb-0">
+                    <li class="mb-2">
+                        <a href="{% url 'root:about_ministry' %}" class="footer-link">عن الوزارة</a>
+                    </li>
+                    <li class="mb-2">
+                        <a href="{% url 'root:legal_text' %}" class="footer-link">النصوص القانونية</a>
+                    </li>
+
+                    <!-- الموقع الرسمي -->
+                    <li class="mb-2">
+                        <a href="https://mkesm.gov.dz/"
+                           target="_blank"
+                           rel="noopener"
+                           class="footer-link d-flex align-items-center gap-1">
+                            <i class="bi bi-box-arrow-up-left small"></i>
+                            الموقع الرسمي للوزارة
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Help -->
+            <div class="col-lg-3">
+                <h6 class="fw-bold mb-3">
+                    هل تحتاج إلى مساعدة؟
+                </h6>
+                <p class="text-muted mb-2 small-muted">
+                    بعد إرسال الطلب، احتفظ برمز التتبع لمتابعة حالة ملفك لاحقًا.
+                </p>
+
+                <a href="{% url 'tracking:track_application' %}"
+                   class="btn btn-outline-custom btn-sm px-3">
+                    <i class="bi bi-search ms-1"></i>
+                    تتبع الآن
+                </a>
+            </div>
+
+        </div>
+
+        <hr class="my-4">
+
+        <!-- Bottom -->
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-center gap-2">
+
+            <p class="text-muted small mb-0">
+                جميع الحقوق محفوظة © {% now "Y" %} منصة الترشح للوظائف والمناصب العليا
+            </p>
+
+            <p class="text-muted small mb-0">
+                <a href="https://mkesm.gov.dz/"
+                   target="_blank"
+                   rel="noopener"
+                   class="footer-link">
+                    وزارة اقتصاد المعرفة والمؤسسات الناشئة والمؤسسات المصغرة
+                </a>
+            </p>
+
+        </div>
+    </div>
+</footer>

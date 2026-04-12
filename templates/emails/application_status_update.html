@@ -1,0 +1,289 @@
+{% extends "emails/email_base.html" %}
+
+{% block title %}تحديث بخصوص طلب الترشح{% endblock %}
+{% block header_subtitle %}إشعار رسمي بتحيين حالة طلب الترشح{% endblock %}
+
+{% block content %}
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" dir="rtl">
+    <tr>
+        <td class="mobile-padding" align="right" style="padding:34px 42px 10px 42px; text-align:right;">
+            <p style="margin:0 0 14px 0; color:#1f2937; font-size:16px; line-height:2;">
+                السيد/السيدة {{ candidate.full_name }}،
+            </p>
+
+            <p style="margin:0 0 14px 0; color:#334155; font-size:15px; line-height:2.1;">
+                نحيطكم علمًا بأنه تم تسجيل تحيين جديد على وضعية طلب الترشح الخاص بكم، ويمكنكم الاطلاع على أهم البيانات المرتبطة بالطلب والحالة الحالية عبر المعلومات المبينة أدناه.
+            </p>
+
+            <p style="margin:0; color:#64748b; font-size:14px; line-height:2.1;">
+                يرجى الاحتفاظ برمز التتبع واستعماله عند الحاجة إلى متابعة مستجدات الملف عبر المنصة.
+            </p>
+        </td>
+    </tr>
+</table>
+
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+    <tr>
+        <td class="mobile-padding" style="padding:22px 42px 0 42px;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f9fcfb; border:1px solid #e3ece8; border-radius:18px;">
+                <tr>
+                    <td align="right" style="padding:24px 24px 20px 24px; text-align:right;">
+                        <h2 style="margin:0 0 16px 0; color:#0f766e; font-size:18px; line-height:1.6; font-weight:700;">
+                            بيانات الطلب
+                        </h2>
+
+                        <p style="margin:0 0 10px 0; color:#1f2937; font-size:14px; line-height:2;">
+                            <strong>رقم الطلب:</strong>
+                            {{ application.application_number }}
+                        </p>
+
+                        <p style="margin:0 0 10px 0; color:#1f2937; font-size:14px; line-height:2;">
+                            <strong>المنصب:</strong>
+                            {{ poste.title }}
+                        </p>
+
+                        {% if poste.direction %}
+                        <p style="margin:0 0 10px 0; color:#1f2937; font-size:14px; line-height:2;">
+                            <strong>المديرية:</strong>
+                            {{ poste.direction }}
+                        </p>
+                        {% endif %}
+
+                        {% if poste.sub_direction %}
+                        <p style="margin:0 0 10px 0; color:#1f2937; font-size:14px; line-height:2;">
+                            <strong>المديرية الفرعية:</strong>
+                            {{ poste.sub_direction }}
+                        </p>
+                        {% endif %}
+
+                        <p style="margin:0; color:#1f2937; font-size:14px; line-height:2;">
+                            <strong>الحالة الحالية:</strong>
+                            {{ status_display }}
+                        </p>
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+    <tr>
+        <td align="center" class="mobile-padding" style="padding:32px 42px 0 42px;">
+            <p style="margin:0 0 14px 0; color:#334155; font-size:15px; line-height:1.9;">
+                رمز التتبع الخاص بكم
+            </p>
+
+            <div class="tracking-code" style="display:inline-block; background:linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%); border:1px dashed #c7d2da; border-radius:16px; padding:18px 28px; min-width:280px; box-sizing:border-box; box-shadow:inset 0 1px 0 rgba(255,255,255,0.85);">
+                <span style="font-size:32px; font-weight:800; letter-spacing:4px; color:#0f172a; direction:ltr; display:inline-block;">
+                    {{ tracking_code }}
+                </span>
+            </div>
+        </td>
+    </tr>
+</table>
+
+{% if application.status == 'under_review' %}
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+    <tr>
+        <td class="mobile-padding" style="padding:24px 42px 0 42px;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#eef6ff; border:1px solid #cfe2ff; border-radius:16px;">
+                <tr>
+                    <td align="right" style="padding:18px 20px; color:#0b5ed7; font-size:14px; line-height:2; text-align:right;">
+                        نحيطكم علمًا بأن ملف الترشح الخاص بكم يوجد حاليًا قيد الدراسة والمعالجة من طرف المصالح المختصة.
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+{% elif application.status == 'incomplete' %}
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+    <tr>
+        <td class="mobile-padding" style="padding:24px 42px 0 42px;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#fff8e7; border:1px solid #f1dda0; border-radius:16px;">
+                <tr>
+                    <td align="right" style="padding:18px 20px; color:#9a6700; font-size:14px; line-height:2; text-align:right;">
+                        تم تسجيل أن الملف يحتاج إلى استكمال أو تصحيح بعض العناصر. يرجى متابعة حالة الطلب بانتظام والاطلاع على أي ملاحظات مرتبطة به.
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+{% elif application.status == 'preselected' %}
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+    <tr>
+        <td class="mobile-padding" style="padding:24px 42px 0 42px;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#edfdf7; border:1px solid #c7efdd; border-radius:16px;">
+                <tr>
+                    <td align="right" style="padding:18px 20px; color:#146c43; font-size:14px; line-height:2; text-align:right;">
+                        يشرفنا إعلامكم بأنه تم قبول ملفكم في مرحلة الانتقاء الأولي.
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+{% elif application.status == 'preliminary_rejected' %}
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+    <tr>
+        <td class="mobile-padding" style="padding:24px 42px 0 42px;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#fff0f0; border:1px solid #f3c5c5; border-radius:16px;">
+                <tr>
+                    <td align="right" style="padding:18px 20px; color:#b02a37; font-size:14px; line-height:2; text-align:right;">
+                        نحيطكم علمًا بأنه، بعد دراسة ملف الترشح في مرحلته الأولية، تقرر عدم قبول الطلب.
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+{% elif application.status == 'interview_scheduled' %}
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+    <tr>
+        <td class="mobile-padding" style="padding:24px 42px 0 42px;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#eef6ff; border:1px solid #cfe2ff; border-radius:16px;">
+                <tr>
+                    <td align="right" style="padding:18px 20px; color:#0b5ed7; font-size:14px; line-height:2; text-align:right;">
+                        يشرفنا إعلامكم بأنه تم إدراج ملفكم ضمن المرحلة المتعلقة بإجراء المقابلة، ويرجى متابعة التفاصيل المرتبطة بالاستدعاء.
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+{% elif application.status == 'interview_completed' %}
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+    <tr>
+        <td class="mobile-padding" style="padding:24px 42px 0 42px;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#eef6ff; border:1px solid #cfe2ff; border-radius:16px;">
+                <tr>
+                    <td align="right" style="padding:18px 20px; color:#0b5ed7; font-size:14px; line-height:2; text-align:right;">
+                        تم تسجيل إجراء المقابلة، والملف في انتظار القرار اللاحق.
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+{% elif application.status == 'no_show' %}
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+    <tr>
+        <td class="mobile-padding" style="padding:24px 42px 0 42px;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#fff8e7; border:1px solid #f1dda0; border-radius:16px;">
+                <tr>
+                    <td align="right" style="padding:18px 20px; color:#9a6700; font-size:14px; line-height:2; text-align:right;">
+                        تم تسجيل عدم الحضور في الموعد المحدد.
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+{% elif application.status == 'final_accepted' %}
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+    <tr>
+        <td class="mobile-padding" style="padding:24px 42px 0 42px;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#edfdf7; border:1px solid #c7efdd; border-radius:16px;">
+                <tr>
+                    <td align="right" style="padding:18px 20px; color:#146c43; font-size:14px; line-height:2; text-align:right;">
+                        يشرفنا إعلامكم بأنه، بعد استكمال إجراءات دراسة ملف الترشح، تقرر قبول طلبكم قبولًا نهائيًا.
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+{% elif application.status == 'final_rejected' %}
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+    <tr>
+        <td class="mobile-padding" style="padding:24px 42px 0 42px;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#fff0f0; border:1px solid #f3c5c5; border-radius:16px;">
+                <tr>
+                    <td align="right" style="padding:18px 20px; color:#b02a37; font-size:14px; line-height:2; text-align:right;">
+                        نحيطكم علمًا بأنه، بعد استكمال دراسة ملف الترشح، تقرر عدم قبول الطلب نهائيًا.
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+{% elif application.status == 'waiting_list' %}
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+    <tr>
+        <td class="mobile-padding" style="padding:24px 42px 0 42px;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#eef6ff; border:1px solid #cfe2ff; border-radius:16px;">
+                <tr>
+                    <td align="right" style="padding:18px 20px; color:#0b5ed7; font-size:14px; line-height:2; text-align:right;">
+                        تم إدراج طلبكم ضمن قائمة الاحتياط.
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+{% endif %}
+
+{% if rejection_reason %}
+    {% if application.status == 'preliminary_rejected' or application.status == 'final_rejected' %}
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+            <td class="mobile-padding" style="padding:20px 42px 0 42px;">
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#fff8f8; border:1px solid #efcaca; border-radius:16px;">
+                    <tr>
+                        <td align="right" style="padding:18px 20px; color:#7f1d1d; font-size:14px; line-height:2; text-align:right;">
+                            <strong>سبب عدم القبول:</strong><br>
+                            {{ rejection_reason }}
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+    {% endif %}
+{% endif %}
+
+{% if admin_notes %}
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+    <tr>
+        <td class="mobile-padding" style="padding:20px 42px 0 42px;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f8fbfa; border:1px solid #e3ece8; border-radius:16px;">
+                <tr>
+                    <td align="right" style="padding:18px 20px; color:#374151; font-size:14px; line-height:2; text-align:right;">
+                        <strong>ملاحظات إضافية:</strong><br>
+                        {{ admin_notes }}
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+{% endif %}
+
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+    <tr>
+        <td class="mobile-padding" style="padding:24px 42px 0 42px;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:linear-gradient(180deg, #fffaf0 0%, #fff6db 100%); border:1px solid #f0dfa1; border-radius:16px;">
+                <tr>
+                    <td align="right" style="padding:18px 20px; color:#7a5b00; font-size:14px; line-height:2; text-align:right;">
+                        يرجى الاحتفاظ برمز التتبع الخاص بكم، ومتابعة حالة الطلب بشكل دوري عبر منصة الترشح التابعة للوزارة.
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+    <tr>
+        <td class="mobile-padding" align="right" style="padding:28px 42px 22px 42px; text-align:right;">
+            <p style="margin:0; color:#374151; font-size:14px; line-height:2.1;">
+                مع خالص التحية،<br>
+                إدارة منصة الترشح<br>
+                وزارة اقتصاد المعرفة والمؤسسات الناشئة والمؤسسات المصغرة
+            </p>
+        </td>
+    </tr>
+</table>
+{% endblock %}

@@ -1,0 +1,148 @@
+{% extends "emails/email_base.html" %}
+
+{% block title %}تأكيد تسجيل الطلب{% endblock %}
+{% block header_subtitle %}إشعار رسمي بتأكيد تسجيل طلب الترشح{% endblock %}
+
+{% block content %}
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" dir="rtl">
+    <tr>
+        <td class="mobile-padding" align="right" style="padding:34px 42px 10px 42px; text-align:right;">
+            <p style="margin:0 0 14px 0; color:#1f2937; font-size:16px; line-height:2;">
+                السيد/السيدة {{ candidate.full_name }}،
+            </p>
+
+            <p style="margin:0 0 14px 0; color:#334155; font-size:15px; line-height:2.1;">
+                يشرفنا إعلامكم بأنه تم تسجيل طلب الترشح الخاص بكم بنجاح عبر المنصة الإلكترونية المخصصة لاستقبال ومعالجة طلبات الترشح المتعلقة بالمناصب والوظائف المفتوحة على مستوى وزارة اقتصاد المعرفة والمؤسسات الناشئة والمؤسسات المصغرة.
+            </p>
+
+            <p style="margin:0; color:#64748b; font-size:14px; line-height:2.1;">
+                يرجى الاحتفاظ بالبيانات المبينة أدناه، ولا سيما رقم الطلب ورمز التتبع، لاستعمالهما عند متابعة وضعية الملف والاطلاع على مستجدات معالجته لاحقًا عبر المنصة.
+            </p>
+        </td>
+    </tr>
+</table>
+
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+    <tr>
+        <td class="mobile-padding" style="padding:22px 42px 0 42px;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f9fcfb; border:1px solid #e3ece8; border-radius:18px;">
+                <tr>
+                    <td align="right" style="padding:24px 24px 20px 24px; text-align:right;">
+                        <h2 style="margin:0 0 16px 0; color:#0f766e; font-size:18px; line-height:1.6; font-weight:700;">
+                            بيانات الطلب
+                        </h2>
+
+                        <p style="margin:0 0 10px 0; color:#1f2937; font-size:14px; line-height:2;">
+                            <strong>رقم الطلب:</strong>
+                            {{ application.application_number }}
+                        </p>
+
+                        <p style="margin:0 0 10px 0; color:#1f2937; font-size:14px; line-height:2;">
+                            <strong>المنصب:</strong>
+                            {{ poste.title }}
+                        </p>
+
+                        {% if poste.direction %}
+                        <p style="margin:0 0 10px 0; color:#1f2937; font-size:14px; line-height:2;">
+                            <strong>المديرية:</strong>
+                            {{ poste.direction }}
+                        </p>
+                        {% endif %}
+
+                        {% if poste.sub_direction %}
+                        <p style="margin:0; color:#1f2937; font-size:14px; line-height:2;">
+                            <strong>المديرية الفرعية:</strong>
+                            {{ poste.sub_direction }}
+                        </p>
+                        {% endif %}
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+    <tr>
+        <td align="center" class="mobile-padding" style="padding:32px 42px 0 42px;">
+            <p style="margin:0 0 14px 0; color:#334155; font-size:15px; line-height:1.9;">
+                رمز التتبع الخاص بكم
+            </p>
+
+            <div class="tracking-code" style="display:inline-block; background:linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%); border:1px dashed #c7d2da; border-radius:16px; padding:18px 28px; min-width:280px; box-sizing:border-box; box-shadow:inset 0 1px 0 rgba(255,255,255,0.85);">
+                <span style="font-size:32px; font-weight:800; letter-spacing:4px; color:#0f172a; direction:ltr; display:inline-block;">
+                    {{ tracking_code }}
+                </span>
+            </div>
+        </td>
+    </tr>
+</table>
+
+{% if tracking_url %}
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+    <tr>
+        <td align="center" class="mobile-padding" style="padding:24px 42px 0 42px;">
+            <a href="{{ tracking_url }}"
+               class="full-width-btn"
+               style="display:inline-block; background:linear-gradient(135deg, #1fbf96 0%, #16997b 100%); color:#ffffff; text-decoration:none; font-size:15px; font-weight:700; padding:15px 30px; border-radius:14px; box-shadow:0 8px 18px rgba(31,191,150,0.18);">
+                متابعة الطلب
+            </a>
+        </td>
+    </tr>
+</table>
+{% endif %}
+
+{% if qr_code_base64 %}
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+    <tr>
+        <td class="mobile-padding" style="padding:30px 42px 0 42px;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#fcfdfd; border:1px solid #e8efec; border-radius:18px;">
+                <tr>
+                    <td align="center" style="padding:24px;">
+                        <h3 style="margin:0 0 10px 0; color:#0f766e; font-size:17px; line-height:1.6; font-weight:700;">
+                            التتبع عبر رمز QR
+                        </h3>
+
+                        <p style="margin:0 0 16px 0; color:#6b7280; font-size:13px; line-height:2;">
+                            يمكنكم مسح رمز QR للوصول المباشر إلى صفحة تتبع الطلب عبر المنصة دون الحاجة إلى إدخال الرمز يدويًا.
+                        </p>
+
+                        <img
+                            src="data:image/png;base64,{{ qr_code_base64 }}"
+                            alt="QR Tracking"
+                            style="display:block; max-width:160px; height:auto; margin:0 auto;"
+                        >
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+{% endif %}
+
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+    <tr>
+        <td class="mobile-padding" style="padding:24px 42px 0 42px;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:linear-gradient(180deg, #fffaf0 0%, #fff6db 100%); border:1px solid #f0dfa1; border-radius:16px;">
+                <tr>
+                    <td align="right" style="padding:18px 20px; color:#7a5b00; font-size:14px; line-height:2; text-align:right;">
+                        يرجى الاحتفاظ برمز التتبع، فهو الوسيلة الأساسية المعتمدة لمتابعة حالة الطلب عبر منصة الترشح التابعة للوزارة.
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+    <tr>
+        <td class="mobile-padding" align="right" style="padding:28px 42px 22px 42px; text-align:right;">
+            <p style="margin:0; color:#374151; font-size:14px; line-height:2.1;">
+                مع خالص التحية،<br>
+                إدارة منصة الترشح<br>
+                وزارة اقتصاد المعرفة والمؤسسات الناشئة والمؤسسات المصغرة
+            </p>
+        </td>
+    </tr>
+</table>
+{% endblock %}

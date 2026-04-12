@@ -1,0 +1,126 @@
+{% extends "emails/email_base.html" %}
+
+{% block title %}استدعاء للمقابلة{% endblock %}
+{% block header_subtitle %}إشعار رسمي باستدعاء للمقابلة{% endblock %}
+
+{% block content %}
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" dir="rtl">
+    <tr>
+        <td class="mobile-padding" align="right" style="padding:34px 42px 10px 42px; text-align:right;">
+            <p style="margin:0 0 14px 0; color:#1f2937; font-size:16px; line-height:2;">
+                السيد/السيدة {{ candidate.full_name }}،
+            </p>
+
+            <p style="margin:0 0 14px 0; color:#334155; font-size:15px; line-height:2.1;">
+                يشرفنا إعلامكم بأنه تم إدراج ملف الترشح الخاص بكم ضمن المرحلة المتعلقة بالمقابلة، وعليه يرجى الاطلاع بعناية على المعلومات المرتبطة بالموعد والالتزام بالحضور وفق ما هو محدد.
+            </p>
+
+            <p style="margin:0; color:#64748b; font-size:14px; line-height:2.1;">
+                يمكنكم الرجوع إلى البيانات التالية باعتبارها المرجع الأساسي المتعلق بطلبكم.
+            </p>
+        </td>
+    </tr>
+</table>
+
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+    <tr>
+        <td class="mobile-padding" style="padding:22px 42px 0 42px;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f9fcfb; border:1px solid #e3ece8; border-radius:18px;">
+                <tr>
+                    <td align="right" style="padding:24px 24px 20px 24px; text-align:right;">
+                        <h2 style="margin:0 0 16px 0; color:#0f766e; font-size:18px; line-height:1.6; font-weight:700;">
+                            بيانات الطلب
+                        </h2>
+
+                        <p style="margin:0 0 10px 0; color:#1f2937; font-size:14px; line-height:2;">
+                            <strong>رقم الطلب:</strong>
+                            {{ application.application_number }}
+                        </p>
+
+                        <p style="margin:0 0 10px 0; color:#1f2937; font-size:14px; line-height:2;">
+                            <strong>المنصب:</strong>
+                            {{ poste.title }}
+                        </p>
+
+                        {% if poste.direction %}
+                        <p style="margin:0 0 10px 0; color:#1f2937; font-size:14px; line-height:2;">
+                            <strong>المديرية:</strong>
+                            {{ poste.direction }}
+                        </p>
+                        {% endif %}
+
+                        {% if poste.sub_direction %}
+                        <p style="margin:0 0 10px 0; color:#1f2937; font-size:14px; line-height:2;">
+                            <strong>المديرية الفرعية:</strong>
+                            {{ poste.sub_direction }}
+                        </p>
+                        {% endif %}
+
+                        <p style="margin:0; color:#1f2937; font-size:14px; line-height:2;">
+                            <strong>رمز التتبع:</strong>
+                            {{ tracking_code }}
+                        </p>
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+
+{% if interview_schedule %}
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+    <tr>
+        <td class="mobile-padding" style="padding:24px 42px 0 42px;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#eef6ff; border:1px solid #cfe2ff; border-radius:16px;">
+                <tr>
+                    <td align="right" style="padding:18px 20px; color:#0b5ed7; font-size:14px; line-height:2; text-align:right;">
+                        <strong>معلومات المقابلة:</strong><br>
+                        {{ interview_schedule }}
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+{% else %}
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+    <tr>
+        <td class="mobile-padding" style="padding:24px 42px 0 42px;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#eef6ff; border:1px solid #cfe2ff; border-radius:16px;">
+                <tr>
+                    <td align="right" style="padding:18px 20px; color:#0b5ed7; font-size:14px; line-height:2; text-align:right;">
+                        تم برمجة مقابلة بخصوص طلبكم، وسيتم اعتماد البيانات المسجلة ضمن المنصة أو الملاحظات الإدارية ذات الصلة لتحديد تفاصيل الموعد.
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+{% endif %}
+
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+    <tr>
+        <td class="mobile-padding" style="padding:24px 42px 0 42px;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:linear-gradient(180deg, #fffaf0 0%, #fff6db 100%); border:1px solid #f0dfa1; border-radius:16px;">
+                <tr>
+                    <td align="right" style="padding:18px 20px; color:#7a5b00; font-size:14px; line-height:2; text-align:right;">
+                        يرجى الالتزام بموعد المقابلة، والاحتفاظ برمز التتبع الخاص بكم، ومتابعة حالة الطلب بانتظام عبر منصة الترشح التابعة للوزارة.
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+    <tr>
+        <td class="mobile-padding" align="right" style="padding:28px 42px 22px 42px; text-align:right;">
+            <p style="margin:0; color:#374151; font-size:14px; line-height:2.1;">
+                مع خالص التحية،<br>
+                إدارة منصة الترشح<br>
+                وزارة اقتصاد المعرفة والمؤسسات الناشئة والمؤسسات المصغرة
+            </p>
+        </td>
+    </tr>
+</table>
+{% endblock %}

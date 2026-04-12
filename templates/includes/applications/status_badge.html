@@ -1,0 +1,19 @@
+{% if status == "submitted" %}
+    <span class="badge-soft-info">تم استلام الطلب</span>
+{% elif status == "under_review" %}
+    <span class="badge-soft-primary">قيد الدراسة</span>
+{% elif status == "incomplete" %}
+    <span class="badge-soft-warning">الملف غير مكتمل</span>
+{% elif status == "preselected" %}
+    <span class="badge-soft-success">تم الانتقاء الأولي</span>
+{% elif status == "preliminary_rejected" %}
+    <span class="badge-soft-danger">مرفوض أوليًا</span>
+{% elif status == "final_accepted" %}
+    <span class="badge-soft-success">مقبول نهائيًا</span>
+{% elif status == "final_rejected" %}
+    <span class="badge-soft-danger">مرفوض نهائيًا</span>
+{% elif status == "waiting_list" %}
+    <span class="badge-soft-warning">في قائمة الانتظار</span>
+{% else %}
+    <span class="badge-soft-primary">{{ status }}</span>
+{% endif %}

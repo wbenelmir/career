@@ -1,0 +1,102 @@
+<div class="custom-card mb-4">
+    <div class="card-body py-3 py-md-4">
+        <div class="row g-3 text-center">
+
+            <div class="col">
+                <div class="d-flex flex-column align-items-center gap-2">
+                    <span class="
+                        d-inline-flex align-items-center justify-content-center rounded-circle fw-bold
+                        {% if current_step >= 1 %}text-white{% else %}text-muted{% endif %}
+                    "
+                    style="
+                        width: 42px;
+                        height: 42px;
+                        background-color: {% if current_step >= 1 %}var(--primary-color){% else %}#e5e7eb{% endif %};
+                    ">
+                        1
+                    </span>
+                    <div class="small fw-semibold {% if current_step >= 1 %}text-dark{% else %}text-muted{% endif %}">
+                        اختيار المنصب
+                    </div>
+                </div>
+            </div>
+
+            <div class="col">
+                <div class="d-flex flex-column align-items-center gap-2">
+                    <span class="
+                        d-inline-flex align-items-center justify-content-center rounded-circle fw-bold
+                        {% if current_step >= 2 %}text-white{% else %}text-muted{% endif %}
+                    "
+                    style="
+                        width: 42px;
+                        height: 42px;
+                        background-color: {% if current_step >= 2 %}var(--primary-color){% else %}#e5e7eb{% endif %};
+                    ">
+                        2
+                    </span>
+                    <div class="small fw-semibold {% if current_step >= 2 %}text-dark{% else %}text-muted{% endif %}">
+                        معلومات المترشح
+                    </div>
+                </div>
+            </div>
+
+            <div class="col">
+                <div class="d-flex flex-column align-items-center gap-2">
+                    <span class="
+                        d-inline-flex align-items-center justify-content-center rounded-circle fw-bold
+                        {% if current_step >= 3 %}text-white{% else %}text-muted{% endif %}
+                    "
+                    style="
+                        width: 42px;
+                        height: 42px;
+                        background-color: {% if current_step >= 3 %}var(--primary-color){% else %}#e5e7eb{% endif %};
+                    ">
+                        3
+                    </span>
+                    <div class="small fw-semibold {% if current_step >= 3 %}text-dark{% else %}text-muted{% endif %}">
+                        رفع الوثائق
+                    </div>
+                </div>
+            </div>
+
+            <div class="col">
+                <div class="d-flex flex-column align-items-center gap-2">
+                    <span class="
+                        d-inline-flex align-items-center justify-content-center rounded-circle fw-bold
+                        {% if current_step >= 4 %}text-white{% else %}text-muted{% endif %}
+                    "
+                    style="
+                        width: 42px;
+                        height: 42px;
+                        background-color: {% if current_step >= 4 %}var(--primary-color){% else %}#e5e7eb{% endif %};
+                    ">
+                        4
+                    </span>
+                    <div class="small fw-semibold {% if current_step >= 4 %}text-dark{% else %}text-muted{% endif %}">
+                        المراجعة
+                    </div>
+                </div>
+            </div>
+
+            <div class="col">
+                <div class="d-flex flex-column align-items-center gap-2">
+                    <span class="
+                        d-inline-flex align-items-center justify-content-center rounded-circle fw-bold
+                        {% if current_step >= 5 %}text-white{% else %}text-muted{% endif %}
+                    "
+                    style="
+                        width: 42px;
+                        height: 42px;
+                        background-color: {% if current_step >= 5 %}var(--primary-color){% else %}#e5e7eb{% endif %};
+                    ">
+                        5
+                    </span>
+                    <div class="small fw-semibold {% if current_step >= 5 %}text-dark{% else %}text-muted{% endif %}">
+                        الإرسال
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>

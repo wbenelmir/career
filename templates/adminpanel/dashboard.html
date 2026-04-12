@@ -1,0 +1,123 @@
+{% extends "base/admin_base.html" %}
+
+{% block title %}لوحة التحكم | الإدارة{% endblock %}
+{% block admin_page_title %}لوحة التحكم{% endblock %}
+{% block admin_page_subtitle %}نظرة عامة على وضعية طلبات الترشح.{% endblock %}
+
+{% block content %}
+<div class="row g-4 mb-4">
+    <div class="col-md-6 col-xl-3">
+        <div class="admin-card h-100">
+            <div class="card-body">
+                <div class="admin-stat-value">{{ total_applications|default:"0" }}</div>
+                <div class="admin-stat-label">إجمالي الطلبات</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 col-xl-3">
+        <div class="admin-card h-100">
+            <div class="card-body">
+                <div class="admin-stat-value">{{ submitted_count|default:"0" }}</div>
+                <div class="admin-stat-label">طلبات مستلمة</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 col-xl-3">
+        <div class="admin-card h-100">
+            <div class="card-body">
+                <div class="admin-stat-value">{{ under_review_count|default:"0" }}</div>
+                <div class="admin-stat-label">قيد الدراسة</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 col-xl-3">
+        <div class="admin-card h-100">
+            <div class="card-body">
+                <div class="admin-stat-value">{{ incomplete_count|default:"0" }}</div>
+                <div class="admin-stat-label">ملفات ناقصة</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="admin-card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center gap-3 mb-3">
+                    <h2 class="h5 fw-bold mb-0">أحدث الطلبات</h2>
+                    <a href="{% url 'adminpanel:applications_list' %}" class="btn btn-admin-outline">عرض الكل</a>
+                </div>
+
+                {% if recent_applications %}
+                    <div class="table-responsive">
+                        <table class="table align-middle mb-0">
+                            <thead>
+                                <tr>
+                                    <th>رقم الطلب</th>
+                                    <th>المترشح</th>
+                                    <th>المنصب</th>
+                                    <th>الحالة</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for application in recent_applications %}
+                                    <tr>
+                                        <td>{{ application.application_number }}</td>
+                                        <td>{{ application.candidate_profile }}</td>
+                                        <td>{{ application.poste }}</td>
+                                        <td>{{ application.get_status_display }}</td>
+                                        <td>
+                                            <a href="{% url 'adminpanel:application_detail' application.pk %}" class="btn btn-sm btn-admin-outline">
+                                                عرض
+                                            </a>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p class="text-muted mb-0">لا توجد طلبات حديثة حاليًا.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="admin-card mb-4">
+            <div class="card-body">
+                <h2 class="h5 fw-bold mb-3">حالات نهائية</h2>
+                <div class="d-flex flex-column gap-3">
+                    <div class="d-flex justify-content-between">
+                        <span class="text-muted">مقبولون نهائيًا</span>
+                        <strong>{{ final_accepted_count|default:"0" }}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span class="text-muted">مرفوضون نهائيًا</span>
+                        <strong>{{ final_rejected_count|default:"0" }}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span class="text-muted">قائمة الانتظار</span>
+                        <strong>{{ waiting_list_count|default:"0" }}</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="admin-card">
+            <div class="card-body">
+                <h2 class="h5 fw-bold mb-3">اختصارات</h2>
+                <div class="d-grid gap-2">
+                    <a href="{% url 'adminpanel:applications_list' %}" class="btn btn-admin-primary">إدارة الطلبات</a>
+                    <a href="{% url 'root:home' %}" class="btn btn-admin-outline">الواجهة العمومية</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

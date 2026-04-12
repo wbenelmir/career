@@ -1,0 +1,80 @@
+{% load static %}
+<nav class="navbar navbar-expand-lg bg-white border-bottom sticky-top shadow-sm">
+    <div class="container">
+
+        <!-- LOGO + BRAND -->
+        <a class="navbar-brand d-flex align-items-center gap-3" href="{% url 'root:home' %}">
+            
+            <!-- شعار الوزارة -->
+            <img src="{% static 'assets/images/mkesm_logo.webp' %}" 
+                alt="شعار الوزارة"
+                class="navbar-logo">
+
+            <!-- عنوان المنصة كصورة -->
+            <img src="{% static 'assets/images/title_logo.webp' %}" 
+                alt="منصة الترشح للوظائف والمناصب العليا"
+                class="navbar-title-logo">
+
+        </a>
+
+        <!-- TOGGLER -->
+        <button class="navbar-toggler border-0 shadow-none" type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#publicNavbar"
+                aria-controls="publicNavbar"
+                aria-expanded="false"
+                aria-label="تبديل القائمة">
+            <span><i class="bi bi-list fs-2"></i></span>
+        </button>
+
+        <!-- NAV -->
+        <div class="collapse navbar-collapse" id="publicNavbar">
+            <ul class="navbar-nav ms-auto mb-2 mb-lg-0 align-items-lg-center gap-lg-2">
+
+                <li class="nav-item">
+                    <a class="nav-link custom-nav-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}"
+                       href="{% url 'root:home' %}">
+                        الرئيسية
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link custom-nav-link {% if request.resolver_match.url_name == 'poste_list' %}active{% endif %}"
+                       href="{% url 'root:poste_list' %}">
+                        المناصب المفتوحة
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link custom-nav-link {% if request.resolver_match.url_name == 'about_ministry' %}active{% endif %}"
+                       href="{% url 'root:about_ministry' %}">
+                        عن الوزارة
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link custom-nav-link {% if request.resolver_match.url_name == 'legal_text' %}active{% endif %}"
+                       href="{% url 'root:legal_text' %}">
+                        النصوص القانونية
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link custom-nav-link {% if request.resolver_match.url_name == 'track_application' %}active{% endif %}"
+                       href="{% url 'tracking:track_application' %}">
+                        تتبع الطلب
+                    </a>
+                </li>
+
+                <li class="nav-item ms-lg-3">
+                    <a class="btn btn-primary-custom px-4" href="{% url 'applications:start_application' %}">
+                        <i class="bi bi-send-check ms-1"></i>
+                        تقديم طلب
+                    </a>
+                </li>
+
+            </ul>
+        </div>
+
+    </div>
+</nav>

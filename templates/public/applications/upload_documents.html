@@ -1,0 +1,930 @@
+{% extends "base/public_base.html" %}
+
+{% block title %}رفع الوثائق | منصة الترشح{% endblock %}
+
+{% block page_header %}
+    {% include "includes/public/page_header.html" with page_title="رفع الوثائق" page_subtitle="الخطوة الثالثة: إرفاق الوثائق المطلوبة لإتمام ملف الترشح." %}
+{% endblock %}
+
+{% block content %}
+<section class="section-padding pt-0">
+    <div class="container">
+
+        {% include "includes/applications/stepper.html" with current_step=3 %}
+
+        <div class="row g-4 mt-1">
+
+            <div class="col-lg-8">
+
+                {% if selected_poste %}
+                    <div class="custom-card mb-4 shadow-sm border-0">
+                        <div class="card-body p-4">
+                            <div class="d-flex align-items-start justify-content-between gap-3 flex-wrap">
+                                <div>
+                                    <h2 class="section-title mb-2">المنصب المختار</h2>
+                                    <h5 class="fw-bold mb-1">{{ selected_poste.title }}</h5>
+                                    {% if selected_poste.direction %}
+                                        <p class="text-muted small mb-2">{{ selected_poste.direction }}</p>
+                                    {% endif %}
+                                    {% if selected_poste.description %}
+                                        <p class="text-muted mb-0" style="line-height: 1.9;">
+                                            {{ selected_poste.description }}
+                                        </p>
+                                    {% endif %}
+                                </div>
+                                <span class="badge-soft-primary px-3 py-2">الخطوة 3 من 5</span>
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+
+                <div class="custom-card shadow-sm border-0">
+                    <div class="card-body p-4 p-md-5">
+                        <div class="d-flex align-items-start justify-content-between gap-3 flex-wrap mb-2">
+                            <div>
+                                <h2 class="section-title mb-2">إرفاق الوثائق</h2>
+                                <p class="section-subtitle mb-0">
+                                    يمكنك اختيار كل ملف ثم رفعه مباشرة. بعد استكمال جميع الوثائق المطلوبة، يمكنك الانتقال إلى خطوة المراجعة.
+                                </p>
+                            </div>
+
+                            {% if missing_documents %}
+                                <span class="badge-soft-warning px-3 py-2">
+                                    {{ missing_documents|length }} وثيقة مطلوبة غير مكتملة
+                                </span>
+                            {% else %}
+                                <span class="badge-soft-success px-3 py-2">
+                                    جميع الوثائق المطلوبة مكتملة
+                                </span>
+                            {% endif %}
+                        </div>
+
+                        <form method="post" enctype="multipart/form-data" novalidate id="documentsUploadForm">
+                            {% csrf_token %}
+
+                            <div class="row g-4 mt-1">
+                                {% for requirement in requirements %}
+                                    <div class="col-12">
+                                        <div
+                                            class="border rounded-4 p-3 p-md-4 bg-white shadow-sm upload-doc-card {% if requirement.is_required and not requirement.current_doc or requirement.is_required and requirement.current_doc and not requirement.current_doc.is_uploaded %}missing-required-card{% endif %}"
+                                            data-doc-required="{% if requirement.is_required %}true{% else %}false{% endif %}"
+                                            data-doc-uploaded="{% if requirement.current_doc and requirement.current_doc.is_uploaded %}true{% else %}false{% endif %}"
+                                            data-card-id="{{ requirement.document_type.id }}"
+                                        >
+                                            <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-3">
+                                                <div>
+                                                    <label class="form-label fw-bold mb-1">
+                                                        {{ requirement.document_type.name }}
+                                                        {% if requirement.is_required %}
+                                                            <span class="text-danger">*</span>
+                                                        {% endif %}
+                                                    </label>
+
+                                                    {% if requirement.help_text %}
+                                                        <div class="form-text">{{ requirement.help_text }}</div>
+                                                    {% elif requirement.document_type.description %}
+                                                        <div class="form-text">{{ requirement.document_type.description }}</div>
+                                                    {% endif %}
+                                                </div>
+
+                                                <div class="d-flex align-items-center gap-2 flex-wrap">
+                                                    {% if requirement.is_required %}
+                                                        <span class="badge-soft-warning">وثيقة مطلوبة</span>
+                                                    {% else %}
+                                                        <span class="badge-soft-info">وثيقة اختيارية</span>
+                                                    {% endif %}
+
+                                                    <span id="status_badge_{{ requirement.document_type.id }}">
+                                                        {% if requirement.current_doc and requirement.current_doc.is_uploaded %}
+                                                            <span class="badge-soft-success">مرفوعة</span>
+                                                        {% else %}
+                                                            <span class="badge-soft-secondary">غير مرفوعة</span>
+                                                        {% endif %}
+                                                    </span>
+                                                </div>
+                                            </div>
+
+                                            <div class="p-3 p-md-4 rounded-4 bg-light border">
+                                                <input
+                                                    type="file"
+                                                    name="document_{{ requirement.document_type.id }}"
+                                                    id="document_{{ requirement.document_type.id }}"
+                                                    class="d-none document-file-input"
+                                                    data-doc-id="{{ requirement.document_type.id }}"
+                                                    data-doc-label="{{ requirement.document_type.name }}"
+                                                    data-preview-id="preview_document_{{ requirement.document_type.id }}"
+                                                    data-filename-id="filename_document_{{ requirement.document_type.id }}"
+                                                    data-upload-btn-id="upload_btn_{{ requirement.document_type.id }}"
+                                                    accept="{% for ext in requirement.get_allowed_extensions_list %}.{{ ext }}{% if not forloop.last %},{% endif %}{% endfor %}"
+                                                >
+
+                                                <div class="d-flex flex-column gap-3">
+                                                    <div class="d-flex flex-column flex-lg-row align-items-stretch gap-3">
+                                                        <label
+                                                            for="document_{{ requirement.document_type.id }}"
+                                                            class="btn btn-outline-custom px-4 py-2 custom-upload-trigger mb-0"
+                                                        >
+                                                            <i class="bi bi-folder2-open ms-1"></i>
+                                                            اختيار ملف
+                                                        </label>
+
+                                                        <div
+                                                            id="filename_document_{{ requirement.document_type.id }}"
+                                                            class="custom-file-name flex-grow-1 d-flex align-items-center rounded-3 border bg-white px-3 py-2 text-muted"
+                                                        >
+                                                            لم يتم اختيار أي ملف جديد
+                                                        </div>
+
+                                                        <button
+                                                            type="button"
+                                                            id="upload_btn_{{ requirement.document_type.id }}"
+                                                            class="btn btn-primary-custom px-4 py-2 upload-single-btn"
+                                                            data-doc-id="{{ requirement.document_type.id }}"
+                                                            disabled
+                                                        >
+                                                            <i class="bi bi-cloud-arrow-up ms-1"></i>
+                                                            رفع الملف
+                                                        </button>
+                                                    </div>
+
+                                                    <div class="small text-muted">
+                                                        <div class="mb-1">
+                                                            <strong>الصيغ المقبولة:</strong>
+                                                            {% if requirement.allowed_extensions %}
+                                                                {% for ext in requirement.get_allowed_extensions_list %}
+                                                                    {{ ext|upper }}{% if not forloop.last %}, {% endif %}
+                                                                {% endfor %}
+                                                            {% else %}
+                                                                حسب الإعدادات المعتمدة
+                                                            {% endif %}
+                                                        </div>
+                                                        <div class="mb-1">
+                                                            <strong>الحجم الأقصى:</strong>
+                                                            {{ requirement.max_file_size_mb }} MB
+                                                        </div>
+                                                        <div>
+                                                            <i class="bi bi-info-circle ms-1"></i>
+                                                            بعد اختيار الملف سيتم رفعه تلقائيًا، ويمكنك أيضًا الضغط على زر
+                                                            <strong>رفع الملف</strong>.
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                {% if requirement.current_doc and requirement.current_doc.is_uploaded %}
+                                                    <div class="mt-3 p-3 rounded-3 border bg-white">
+                                                        <div class="small text-muted mb-1">
+                                                            <i class="bi bi-paperclip ms-1"></i>
+                                                            الملف الحالي
+                                                        </div>
+                                                        <div class="small">
+                                                            {% if requirement.current_doc.file_url %}
+                                                                <a href="{{ requirement.current_doc.file_url }}" target="_blank" class="fw-bold text-decoration-none">
+                                                                    {{ requirement.current_doc.file_name }}
+                                                                </a>
+                                                            {% else %}
+                                                                <strong>{{ requirement.current_doc.file_name }}</strong>
+                                                            {% endif %}
+                                                        </div>
+                                                        <div class="small text-muted mt-1">
+                                                            يمكنك اختيار ملف جديد لاستبداله.
+                                                        </div>
+                                                    </div>
+                                                {% else %}
+                                                    <div class="mt-3 small text-muted">
+                                                        لم يتم رفع ملف لهذه الوثيقة بعد.
+                                                    </div>
+                                                {% endif %}
+
+                                                <div class="mt-3 selected-file-preview d-none" id="preview_document_{{ requirement.document_type.id }}">
+                                                    <div class="rounded-3 border px-3 py-3 bg-white">
+                                                        <div class="small fw-bold text-success mb-2">
+                                                            <i class="bi bi-check-circle ms-1"></i>
+                                                            تم اختيار ملف جديد
+                                                        </div>
+                                                        <div class="small text-muted preview-original-name mb-1"></div>
+                                                        <div class="small text-muted preview-renamed-name mb-1"></div>
+                                                        <div class="small text-warning preview-upload-note">
+                                                            الملف لم يُرفع بعد.
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div
+                                                    class="upload-inline-message d-none mt-3"
+                                                    id="inline_message_{{ requirement.document_type.id }}"
+                                                ></div>
+
+                                                <div class="mt-3" id="hint_{{ requirement.document_type.id }}">
+                                                    {% if requirement.current_doc and requirement.current_doc.is_uploaded %}
+                                                        <span class="badge-soft-success">تم رفع هذه الوثيقة ويمكنك استبدالها بملف جديد</span>
+                                                    {% elif requirement.is_required %}
+                                                        <span class="badge-soft-warning">هذه الوثيقة مطلوبة ولم تُرفع بعد</span>
+                                                    {% else %}
+                                                        <span class="badge-soft-info">هذه الوثيقة اختيارية</span>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% empty %}
+                                    <div class="col-12">
+                                        <div class="alert alert-warning mb-0 rounded-4">
+                                            لا توجد وثائق معرفة حاليًا لهذا المسار، يرجى مراجعة الإدارة.
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+
+                            {% if uploaded_documents %}
+                                <div class="mt-5">
+                                    <div class="d-flex align-items-center justify-content-between gap-3 flex-wrap mb-3">
+                                        <h3 class="section-title mb-0">حالة الوثائق</h3>
+                                        {% if missing_documents %}
+                                            <span class="badge-soft-warning">الملف غير مكتمل</span>
+                                        {% else %}
+                                            <span class="badge-soft-success">الملف مكتمل</span>
+                                        {% endif %}
+                                    </div>
+
+                                    <div class="custom-card shadow-sm border-0">
+                                        <div class="card-body p-0">
+                                            <div class="table-responsive">
+                                                <table class="table align-middle mb-0">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>نوع الوثيقة</th>
+                                                            <th>اسم الملف</th>
+                                                            <th>الحالة</th>
+                                                            <th>النوع</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        {% for doc in uploaded_documents %}
+                                                            <tr id="doc_row_{{ doc.id }}">
+                                                                <td class="fw-semibold">{{ doc.label }}</td>
+                                                                <td id="doc_name_{{ doc.id }}">
+                                                                    {% if doc.file_name %}
+                                                                        {% if doc.file_url %}
+                                                                            <a href="{{ doc.file_url }}" target="_blank" class="text-decoration-none fw-semibold">
+                                                                                {{ doc.file_name }}
+                                                                            </a>
+                                                                        {% else %}
+                                                                            {{ doc.file_name }}
+                                                                        {% endif %}
+                                                                    {% else %}
+                                                                        <span class="text-muted">—</span>
+                                                                    {% endif %}
+                                                                </td>
+                                                                <td id="doc_status_{{ doc.id }}">
+                                                                    {% if doc.is_uploaded %}
+                                                                        <span class="badge-soft-success">مرفوعة</span>
+                                                                    {% else %}
+                                                                        <span class="badge-soft-warning">غير مرفوعة</span>
+                                                                    {% endif %}
+                                                                </td>
+                                                                <td>
+                                                                    {% if doc.is_required %}
+                                                                        <span class="text-danger fw-semibold">مطلوبة</span>
+                                                                    {% else %}
+                                                                        <span class="text-muted">اختيارية</span>
+                                                                    {% endif %}
+                                                                </td>
+                                                            </tr>
+                                                        {% endfor %}
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endif %}
+
+                            {% if missing_documents %}
+                                <div class="alert alert-warning rounded-4 mt-4 mb-0" id="missingDocsAlert">
+                                    <div class="fw-bold mb-2">
+                                        <i class="bi bi-exclamation-triangle-fill ms-1"></i>
+                                        وثائق مطلوبة ما زالت غير مستكملة
+                                    </div>
+                                    <ul class="rtl-list mb-0">
+                                        {% for item in missing_documents %}
+                                            <li>{{ item }}</li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                            {% else %}
+                                <div class="alert alert-success rounded-4 mt-4 mb-0" id="missingDocsAlert">
+                                    <div class="fw-bold mb-1">
+                                        <i class="bi bi-check-circle-fill ms-1"></i>
+                                        تم استكمال الوثائق المطلوبة
+                                    </div>
+                                    <div class="small">
+                                        يمكنك الآن الانتقال إلى خطوة مراجعة الطلب.
+                                    </div>
+                                </div>
+                            {% endif %}
+
+                            <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mt-4 pt-3 border-top">
+                                <a href="{% url 'applications:candidate_information' %}" class="btn btn-outline-custom btn-lg px-4">
+                                    <i class="bi bi-arrow-right-circle ms-1"></i>
+                                    الرجوع إلى معلومات المترشح
+                                </a>
+
+                                <button
+                                    type="submit"
+                                    class="btn btn-primary-custom btn-lg px-4"
+                                    id="documentsSubmitBtn"
+                                    {% if missing_documents %}disabled{% endif %}
+                                >
+                                    <i class="bi bi-arrow-left-circle ms-1"></i>
+                                    الانتقال إلى مراجعة الطلب
+                                </button>
+                            </div>
+
+                            <div class="form-text mt-3 text-center">
+                                يجب أولًا رفع جميع الوثائق المطلوبة بنجاح، ثم يمكنك الانتقال إلى المرحلة التالية.
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="col-lg-4">
+                <div class="d-flex flex-column gap-4">
+
+                    <div class="custom-card shadow-sm border-0">
+                        <div class="card-body">
+                            <h3 class="section-title">إرشادات مهمة</h3>
+                            <ul class="rtl-list text-muted mb-0">
+                                <li>بعد اختيار الملف، يتم رفعه تلقائيًا إلى النظام.</li>
+                                <li>يمكنك أيضًا الضغط على زر <strong>رفع الملف</strong> يدويًا.</li>
+                                <li>لن تتمكن من الانتقال للمرحلة التالية إلا بعد استكمال الوثائق المطلوبة.</li>
+                                <li>يمكن استبدال الملف المرفوع بملف جديد قبل الإرسال النهائي.</li>
+                                <li>سيتم تنظيم اسم الملف ومسار تخزينه تلقائيًا داخل النظام.</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="custom-card shadow-sm border-0">
+                        <div class="card-body">
+                            <h3 class="section-title">تقدمك في المسار</h3>
+                            <div class="d-flex flex-column gap-3">
+                                <div class="d-flex align-items-center gap-3">
+                                    <span class="badge-soft-success">✓</span>
+                                    <span class="text-muted">اختيار المنصب</span>
+                                </div>
+                                <div class="d-flex align-items-center gap-3">
+                                    <span class="badge-soft-success">✓</span>
+                                    <span class="text-muted">معلومات المترشح</span>
+                                </div>
+                                <div class="d-flex align-items-center gap-3">
+                                    <span class="badge-soft-primary">3</span>
+                                    <span class="text-muted fw-semibold">رفع الوثائق</span>
+                                </div>
+                                <div class="d-flex align-items-center gap-3">
+                                    <span class="badge-soft-info">4</span>
+                                    <span class="text-muted">مراجعة الطلب</span>
+                                </div>
+                                <div class="d-flex align-items-center gap-3">
+                                    <span class="badge-soft-info">5</span>
+                                    <span class="text-muted">الإرسال النهائي</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="custom-card shadow-sm border-0">
+                        <div class="card-body">
+                            <h3 class="section-title">ملخص الحالة</h3>
+                            <div class="d-flex flex-column gap-2 text-muted">
+                                <div class="d-flex justify-content-between">
+                                    <span>إجمالي الوثائق</span>
+                                    <strong>{{ uploaded_documents|length }}</strong>
+                                </div>
+                                <div class="d-flex justify-content-between">
+                                    <span>غير المستكملة</span>
+                                    <strong id="missingCountValue">{{ missing_documents|length }}</strong>
+                                </div>
+                                <div class="d-flex justify-content-between">
+                                    <span>المرحلة الحالية</span>
+                                    <strong>رفع الوثائق</strong>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="custom-card shadow-sm border-0">
+                        <div class="card-body">
+                            <h3 class="section-title">تنبيه مهم</h3>
+                            <p class="text-muted mb-0" style="line-height: 1.9;">
+                                لا يعتبر ملف الترشح جاهزًا للإرسال النهائي إلا بعد استكمال جميع الوثائق المطلوبة
+                                ومراجعة محتوى الطلب في الخطوة التالية.
+                            </p>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <div id="toastContainer" class="upload-toast-container"></div>
+</section>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.custom-upload-trigger {
+    min-width: 150px;
+    text-align: center;
+    font-weight: 700;
+    border-radius: 14px;
+}
+
+.custom-file-name {
+    min-height: 48px;
+    line-height: 1.6;
+    border-radius: 14px;
+    overflow: hidden;
+    word-break: break-word;
+}
+
+.upload-doc-card {
+    transition: 0.25s ease;
+}
+
+.upload-doc-card:hover {
+    box-shadow: 0 0.35rem 1rem rgba(0, 0, 0, 0.05);
+}
+
+.missing-required-card {
+    border-color: #f0c36d !important;
+    background: #fffdf8;
+}
+
+.upload-single-btn[disabled] {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+.upload-toast-container {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    z-index: 1080;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-width: 380px;
+    width: calc(100% - 40px);
+}
+
+.upload-toast {
+    border-radius: 16px;
+    padding: 14px 16px;
+    box-shadow: 0 0.75rem 1.5rem rgba(0, 0, 0, 0.12);
+    border: 1px solid transparent;
+    background: #fff;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    animation: fadeSlideIn 0.25s ease;
+}
+
+.upload-toast-icon {
+    flex-shrink: 0;
+    font-size: 1.1rem;
+    line-height: 1;
+    margin-top: 2px;
+}
+
+.upload-toast-body {
+    flex: 1;
+}
+
+.upload-toast-title {
+    font-weight: 700;
+    margin-bottom: 2px;
+}
+
+.upload-toast-message {
+    font-size: 0.95rem;
+    line-height: 1.7;
+    color: #5f6b7a;
+}
+
+.upload-toast-close {
+    border: 0;
+    background: transparent;
+    font-size: 1.1rem;
+    line-height: 1;
+    color: #7a8594;
+    padding: 0;
+    cursor: pointer;
+}
+
+.upload-toast-success {
+    border-color: #cfe9db;
+    background: #f5fbf7;
+}
+
+.upload-toast-success .upload-toast-icon,
+.upload-toast-success .upload-toast-title {
+    color: #198754;
+}
+
+.upload-toast-error {
+    border-color: #f1c7cd;
+    background: #fff5f6;
+}
+
+.upload-toast-error .upload-toast-icon,
+.upload-toast-error .upload-toast-title {
+    color: #dc3545;
+}
+
+.upload-toast-warning {
+    border-color: #f3deab;
+    background: #fffaf0;
+}
+
+.upload-toast-warning .upload-toast-icon,
+.upload-toast-warning .upload-toast-title {
+    color: #b7791f;
+}
+
+.upload-toast-info {
+    border-color: #cfe2ff;
+    background: #f4f8ff;
+}
+
+.upload-toast-info .upload-toast-icon,
+.upload-toast-info .upload-toast-title {
+    color: #0d6efd;
+}
+
+.upload-inline-message {
+    border-radius: 14px;
+    padding: 12px 14px;
+    font-size: 0.95rem;
+    line-height: 1.7;
+    border: 1px solid transparent;
+}
+
+.upload-inline-message-success {
+    background: #f5fbf7;
+    border-color: #cfe9db;
+    color: #198754;
+}
+
+.upload-inline-message-error {
+    background: #fff5f6;
+    border-color: #f1c7cd;
+    color: #dc3545;
+}
+
+.upload-inline-message-warning {
+    background: #fffaf0;
+    border-color: #f3deab;
+    color: #b7791f;
+}
+
+.upload-inline-message-info {
+    background: #f4f8ff;
+    border-color: #cfe2ff;
+    color: #0d6efd;
+}
+
+@keyframes fadeSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || "";
+    const submitBtn = document.getElementById("documentsSubmitBtn");
+    const singleUploadUrl = "{{ single_upload_url|default:'' }}";
+    const toastContainer = document.getElementById("toastContainer");
+
+    function showToast(message, type = "info", title = "") {
+        if (!toastContainer) return;
+
+        const titles = {
+            success: title || "تم بنجاح",
+            error: title || "حدث خطأ",
+            warning: title || "تنبيه",
+            info: title || "معلومة"
+        };
+
+        const icons = {
+            success: "bi-check-circle-fill",
+            error: "bi-x-circle-fill",
+            warning: "bi-exclamation-triangle-fill",
+            info: "bi-info-circle-fill"
+        };
+
+        const toast = document.createElement("div");
+        toast.className = `upload-toast upload-toast-${type}`;
+        toast.innerHTML = `
+            <div class="upload-toast-icon">
+                <i class="bi ${icons[type] || icons.info}"></i>
+            </div>
+            <div class="upload-toast-body">
+                <div class="upload-toast-title">${titles[type] || titles.info}</div>
+                <div class="upload-toast-message">${message}</div>
+            </div>
+            <button type="button" class="upload-toast-close" aria-label="إغلاق">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        `;
+
+        toastContainer.appendChild(toast);
+
+        const closeBtn = toast.querySelector(".upload-toast-close");
+        if (closeBtn) {
+            closeBtn.addEventListener("click", function () {
+                toast.remove();
+            });
+        }
+
+        setTimeout(() => {
+            toast.remove();
+        }, 4500);
+    }
+
+    function showInlineMessage(docId, message, type = "info") {
+        const box = document.getElementById(`inline_message_${docId}`);
+        if (!box) return;
+
+        box.className = `upload-inline-message mt-3 upload-inline-message-${type}`;
+        box.textContent = message;
+        box.classList.remove("d-none");
+    }
+
+    function clearInlineMessage(docId) {
+        const box = document.getElementById(`inline_message_${docId}`);
+        if (!box) return;
+
+        box.className = "upload-inline-message d-none mt-3";
+        box.textContent = "";
+    }
+
+    function setButtonLoading(button, isLoading, defaultHtml) {
+        if (!button) return;
+
+        if (isLoading) {
+            button.disabled = true;
+            button.dataset.defaultHtml = defaultHtml || button.innerHTML;
+            button.innerHTML = '<span class="spinner-border spinner-border-sm ms-1" role="status" aria-hidden="true"></span>جاري الرفع...';
+        } else {
+            button.disabled = false;
+            button.innerHTML = button.dataset.defaultHtml || defaultHtml || button.innerHTML;
+        }
+    }
+
+    function updateContinueButton() {
+        const missingCards = document.querySelectorAll('[data-doc-required="true"][data-doc-uploaded="false"]');
+        const missingCountValue = document.getElementById("missingCountValue");
+        const missingDocsAlert = document.getElementById("missingDocsAlert");
+
+        if (missingCountValue) {
+            missingCountValue.textContent = missingCards.length;
+        }
+
+        if (submitBtn) {
+            submitBtn.disabled = missingCards.length > 0;
+        }
+
+        if (missingDocsAlert) {
+            if (missingCards.length > 0) {
+                missingDocsAlert.className = "alert alert-warning rounded-4 mt-4 mb-0";
+                missingDocsAlert.innerHTML = `
+                    <div class="fw-bold mb-1">
+                        <i class="bi bi-exclamation-triangle-fill ms-1"></i>
+                        وثائق مطلوبة ما زالت غير مستكملة
+                    </div>
+                    <div class="small">
+                        يجب رفع جميع الوثائق المطلوبة قبل الانتقال إلى مرحلة المراجعة.
+                    </div>
+                `;
+            } else {
+                missingDocsAlert.className = "alert alert-success rounded-4 mt-4 mb-0";
+                missingDocsAlert.innerHTML = `
+                    <div class="fw-bold mb-1">
+                        <i class="bi bi-check-circle-fill ms-1"></i>
+                        تم استكمال الوثائق المطلوبة
+                    </div>
+                    <div class="small">
+                        يمكنك الآن الانتقال إلى خطوة مراجعة الطلب.
+                    </div>
+                `;
+            }
+        }
+    }
+
+    function markDocumentUploaded(docId, fileName) {
+        const card = document.querySelector(`[data-card-id="${docId}"]`);
+        const statusBadge = document.getElementById(`status_badge_${docId}`);
+        const hintBox = document.getElementById(`hint_${docId}`);
+        const docStatus = document.getElementById(`doc_status_${docId}`);
+        const docName = document.getElementById(`doc_name_${docId}`);
+        const fileNameBox = document.getElementById(`filename_document_${docId}`);
+        const uploadBtn = document.getElementById(`upload_btn_${docId}`);
+        const previewBox = document.getElementById(`preview_document_${docId}`);
+
+        if (card) {
+            card.setAttribute("data-doc-uploaded", "true");
+            card.classList.remove("missing-required-card");
+        }
+
+        if (statusBadge) {
+            statusBadge.innerHTML = '<span class="badge-soft-success">مرفوعة</span>';
+        }
+
+        if (hintBox) {
+            hintBox.innerHTML = '<span class="badge-soft-success">تم رفع هذه الوثيقة بنجاح ويمكنك استبدالها بملف جديد</span>';
+        }
+
+        if (docStatus) {
+            docStatus.innerHTML = '<span class="badge-soft-success">مرفوعة</span>';
+        }
+
+        if (docName) {
+            docName.innerHTML = `<span class="fw-semibold">${fileName}</span>`;
+        }
+
+        if (fileNameBox) {
+            fileNameBox.textContent = fileName;
+            fileNameBox.classList.remove("text-muted");
+        }
+
+        if (uploadBtn) {
+            uploadBtn.disabled = true;
+        }
+
+        if (previewBox) {
+            const note = previewBox.querySelector(".preview-upload-note");
+            if (note) {
+                note.className = "small text-success preview-upload-note";
+                note.textContent = "تم رفع الملف بنجاح.";
+            }
+        }
+
+        showInlineMessage(docId, `تم رفع الملف بنجاح: ${fileName}`, "success");
+        updateContinueButton();
+        showToast(`تم رفع الملف: ${fileName}`, "success");
+    }
+
+    async function uploadSingleDocument(inputEl) {
+        if (!inputEl || !inputEl.files || !inputEl.files[0]) return;
+
+        if (!singleUploadUrl) {
+            showToast("رابط رفع الوثيقة غير مهيأ داخل الصفحة.", "error");
+            return;
+        }
+
+        const docId = inputEl.dataset.docId;
+        const file = inputEl.files[0];
+        const uploadBtnId = inputEl.dataset.uploadBtnId;
+        const uploadBtn = document.getElementById(uploadBtnId);
+        const defaultBtnHtml = uploadBtn ? uploadBtn.innerHTML : "";
+
+        const formData = new FormData();
+        formData.append("document_type_id", docId);
+        formData.append("file", file);
+
+        clearInlineMessage(docId);
+        showInlineMessage(docId, "جاري رفع الملف...", "info");
+
+        try {
+            setButtonLoading(uploadBtn, true, defaultBtnHtml);
+
+            const response = await fetch(singleUploadUrl, {
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": csrfToken,
+                    "X-Requested-With": "XMLHttpRequest"
+                },
+                body: formData
+            });
+
+            const data = await response.json();
+
+            if (!response.ok || !data.success) {
+                throw new Error(data.message || "تعذر رفع الملف.");
+            }
+
+            markDocumentUploaded(docId, data.file_name || file.name);
+        } catch (error) {
+            const errorMessage = error.message || "حدث خطأ أثناء رفع الملف.";
+            showInlineMessage(docId, errorMessage, "error");
+            showToast(errorMessage, "error");
+
+            if (uploadBtn) {
+                uploadBtn.disabled = false;
+                uploadBtn.innerHTML = defaultBtnHtml;
+            }
+        } finally {
+            if (uploadBtn) {
+                uploadBtn.disabled = true;
+                uploadBtn.innerHTML = defaultBtnHtml;
+            }
+        }
+    }
+
+    document.querySelectorAll(".document-file-input").forEach(function (input) {
+        input.addEventListener("change", function () {
+            const file = this.files && this.files[0] ? this.files[0] : null;
+            const previewId = this.dataset.previewId;
+            const filenameId = this.dataset.filenameId;
+            const uploadBtnId = this.dataset.uploadBtnId;
+            const docId = this.dataset.docId;
+
+            const previewBox = document.getElementById(previewId);
+            const filenameBox = document.getElementById(filenameId);
+            const uploadBtn = document.getElementById(uploadBtnId);
+
+            clearInlineMessage(docId);
+
+            if (!file) {
+                if (previewBox) previewBox.classList.add("d-none");
+                if (filenameBox) {
+                    filenameBox.textContent = "لم يتم اختيار أي ملف جديد";
+                    filenameBox.classList.add("text-muted");
+                }
+                if (uploadBtn) uploadBtn.disabled = true;
+                return;
+            }
+
+            const docLabel = this.dataset.docLabel || "document";
+            const originalName = file.name;
+
+            const safeLabel = docLabel
+                .trim()
+                .replace(/\s+/g, "_")
+                .replace(/[^\u0600-\u06FFa-zA-Z0-9_\-]/g, "");
+
+            const extension = originalName.includes(".")
+                ? originalName.split(".").pop().toLowerCase()
+                : "";
+
+            const suggestedName = safeLabel + (extension ? "." + extension : "");
+
+            if (filenameBox) {
+                filenameBox.textContent = originalName;
+                filenameBox.classList.remove("text-muted");
+            }
+
+            if (previewBox) {
+                const originalNameEl = previewBox.querySelector(".preview-original-name");
+                const renamedNameEl = previewBox.querySelector(".preview-renamed-name");
+                const noteEl = previewBox.querySelector(".preview-upload-note");
+
+                if (originalNameEl) {
+                    originalNameEl.textContent = "الملف المختار: " + originalName;
+                }
+
+                if (renamedNameEl) {
+                    renamedNameEl.textContent = "الاسم التنظيمي المتوقع داخل النظام: " + suggestedName;
+                }
+
+                if (noteEl) {
+                    noteEl.className = "small text-warning preview-upload-note";
+                    noteEl.textContent = "جاري الرفع التلقائي بعد الاختيار...";
+                }
+
+                previewBox.classList.remove("d-none");
+            }
+
+            if (uploadBtn) {
+                uploadBtn.disabled = false;
+            }
+
+            uploadSingleDocument(this);
+        });
+    });
+
+    document.querySelectorAll(".upload-single-btn").forEach(function (button) {
+        button.addEventListener("click", function () {
+            const docId = this.dataset.docId;
+            const inputEl = document.getElementById(`document_${docId}`);
+            uploadSingleDocument(inputEl);
+        });
+    });
+
+    updateContinueButton();
+});
+</script>
+{% endblock %}

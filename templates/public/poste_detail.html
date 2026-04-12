@@ -1,0 +1,268 @@
+{% extends "base/public_base.html" %}
+
+{% block title %}{{ poste.title }} | منصة الترشح{% endblock %}
+
+{% block page_header %}
+    {% include "includes/public/page_header.html" with page_title=poste.title page_subtitle="الاطلاع على تفاصيل المنصب وشروطه العامة قبل الشروع في الترشح." %}
+{% endblock %}
+
+{% block content %}
+<section class="section-padding pt-0">
+    <div class="container">
+        <div class="row g-4">
+
+            <!-- MAIN -->
+            <div class="col-lg-8">
+
+                <!-- HEADER CARD -->
+                <div class="poste-hero-card mb-4">
+
+                    <div class="poste-hero-top">
+
+                        <div class="d-flex flex-wrap gap-2">
+
+                            {% if poste.poste_type == 'transfer' %}
+                                <span class="badge-soft-success">وظائف عليا</span>
+                            {% elif poste.poste_type == 'detachment' %}
+                                <span class="badge-soft-warning">مناصب عليا</span>
+                            {% elif poste.poste_type == 'head_office' %}
+                                <span class="badge-soft-primary">رتب</span>
+                            {% endif %}
+
+                            {% if poste.is_open %}
+                                <span class="badge-soft-success">مفتوح</span>
+                            {% else %}
+                                <span class="badge-soft-danger">مغلق</span>
+                            {% endif %}
+
+                            {% if poste.positions_count %}
+                                <span class="poste-chip">
+                                    <i class="bi bi-people ms-1"></i>
+                                    {{ poste.positions_count }}
+                                </span>
+                            {% endif %}
+                        </div>
+
+                        {% if poste.deadline %}
+                            <div class="poste-deadline">
+                                <i class="bi bi-calendar-event ms-1"></i>
+                                آخر أجل: {{ poste.deadline|date:"Y/m/d" }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <h2 class="poste-title mb-3">
+                        {{ poste.title }}
+                    </h2>
+
+                    <!-- STRUCTURE -->
+                    <div class="poste-structure mb-3">
+
+                        {% if poste.direction %}
+                            <div class="structure-line">
+                                <i class="bi bi-building"></i>
+                                {{ poste.direction }}
+                            </div>
+                        {% endif %}
+
+                        {% if poste.sub_direction %}
+                            <div class="structure-line sub">
+                                <i class="bi bi-diagram-3"></i>
+                                {{ poste.sub_direction }}
+                            </div>
+                        {% endif %}
+
+                    </div>
+
+                    <!-- DESCRIPTION -->
+                    <div class="poste-description-content">
+                        {% if poste.description %}
+                            {{ poste.description|linebreaks }}
+                        {% else %}
+                            <div class="text-muted">
+                                لا توجد تفاصيل إضافية متاحة.
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- ACTIONS -->
+                    <div class="poste-hero-actions mt-4">
+
+                        {% if poste.is_open %}
+                            <a href="{% url 'applications:start_application_with_slug' poste.slug %}"
+                               class="btn btn-outline-custom">
+                                <i class="bi bi-send-check ms-1"></i>
+                                الترشح
+                            </a>
+                        {% endif %}
+
+                        <a href="{% url 'root:poste_list' %}"
+                           class="btn btn-outline-secondary-custom">
+                            <i class="bi bi-arrow-right ms-1"></i>
+                            العودة
+                        </a>
+
+                    </div>
+
+                </div>
+
+                <!-- LEGAL -->
+                {% if poste.legal_reference %}
+                    <div class="custom-card mb-4">
+                        <div class="card-body p-4">
+
+                            <h3 class="section-title">المرجع القانوني</h3>
+
+                            <div class="soft-box legal-ref-box">
+
+                                <div class="fw-bold mb-2">
+                                    {{ poste.legal_reference.title }}
+                                </div>
+
+                                {% if poste.legal_reference.reference_number %}
+                                    <div class="small text-muted mb-1">
+                                        رقم المرجع: {{ poste.legal_reference.reference_number }}
+                                    </div>
+                                {% endif %}
+
+                                {% if poste.legal_reference.published_date %}
+                                    <div class="small text-muted mb-2">
+                                        {{ poste.legal_reference.published_date|date:"Y-m-d" }}
+                                    </div>
+                                {% endif %}
+
+                                {% if poste.legal_reference.description %}
+                                    <p class="text-muted mb-2">
+                                        {{ poste.legal_reference.description }}
+                                    </p>
+                                {% endif %}
+
+                                {% if poste.legal_reference.document_url %}
+                                    <a href="{{ poste.legal_reference.document_url }}"
+                                       target="_blank"
+                                       class="btn btn-outline-custom btn-sm">
+                                        الاطلاع على المرجع
+                                    </a>
+                                {% endif %}
+
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+
+            </div>
+
+            <!-- SIDE -->
+            <div class="col-lg-4">
+
+                <div class="custom-card mb-4">
+                    <div class="card-body p-4">
+
+                        <h3 class="section-title">بطاقة المنصب</h3>
+
+                        <ul class="rtl-list text-muted">
+
+                            <li><strong>العنوان:</strong> {{ poste.title }}</li>
+
+                            {% if poste.direction %}
+                                <li><strong>المديرية:</strong> {{ poste.direction }}</li>
+                            {% endif %}
+
+                            {% if poste.sub_direction %}
+                                <li><strong>المديرية الفرعية:</strong> {{ poste.sub_direction }}</li>
+                            {% endif %}
+
+                            {% if poste.positions_count %}
+                                <li><strong>عدد المناصب:</strong> {{ poste.positions_count }}</li>
+                            {% endif %}
+
+                            {% if poste.deadline %}
+                                <li><strong>آخر أجل:</strong> {{ poste.deadline|date:"Y-m-d" }}</li>
+                            {% endif %}
+
+                        </ul>
+
+                    </div>
+                </div>
+
+                <div class="custom-card">
+                    <div class="card-body p-4">
+
+                        <div class="d-grid gap-2">
+
+                            {% if poste.is_open %}
+                                <a href="{% url 'applications:start_application_with_slug' poste.slug %}"
+                                   class="btn btn-outline-custom">
+                                    الترشح
+                                </a>
+                            {% endif %}
+
+                            <a href="{% url 'tracking:track_application' %}"
+                               class="btn btn-outline-secondary-custom">
+                                تتبع طلب
+                            </a>
+
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+</section>
+
+<style>
+.poste-hero-card {
+    border: 1px solid #dfe7e4;
+    border-radius: 24px;
+    padding: 28px;
+    background: #fff;
+}
+
+.poste-hero-top {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+}
+
+.poste-title {
+    font-size: 1.6rem;
+    font-weight: 800;
+    line-height: 1.7;
+}
+
+.structure-line {
+    font-size: 0.95rem;
+    color: #6c757d;
+}
+
+.structure-line.sub {
+    margin-right: 10px;
+}
+
+.poste-chip {
+    background: #f1f3f5;
+    padding: 5px 10px;
+    border-radius: 999px;
+}
+
+.poste-deadline {
+    font-size: 0.85rem;
+    color: #b45309;
+}
+
+.poste-hero-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.btn-outline-secondary-custom {
+    border: 1px solid #ced4da;
+    background: #fff;
+}
+</style>
+
+{% endblock %}
