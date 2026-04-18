@@ -16,38 +16,6 @@
 
             <div class="col-lg-8">
 
-                <div class="custom-card mb-4 shadow-sm border-0">
-                    <div class="card-body p-4">
-
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h2 class="section-title mb-0">المناصب المختارة</h2>
-                            <span class="badge-soft-primary">حسب الأولوية</span>
-                        </div>
-
-                        {% if primary_poste %}
-                            <div class="p-3 mb-3 rounded-4 border bg-light">
-                                <div class="text-muted small mb-1">المنصب الأساسي</div>
-                                <div class="fw-bold fs-5">{{ primary_poste.title }}</div>
-                                {% if primary_poste.direction %}
-                                    <div class="text-muted small mt-1">{{ primary_poste.direction }}</div>
-                                {% endif %}
-                            </div>
-                        {% endif %}
-
-                        <ol class="mb-0 ps-3" style="line-height: 2;">
-                            {% for choice in choices %}
-                                {% if choice.priority != 1 %}
-                                    <li class="mb-2">
-                                        <strong>{{ choice.poste.title }}</strong>
-                                        <span class="text-muted small">(الأولوية {{ choice.priority }})</span>
-                                    </li>
-                                {% endif %}
-                            {% endfor %}
-                        </ol>
-
-                    </div>
-                </div>
-
                 <div class="custom-card">
                     <div class="card-body">
 

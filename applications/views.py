@@ -312,7 +312,6 @@ def start_application(request, slug=None):
 
 def candidate_information(request):
     
-    application = _get_draft_application_from_session(request)
     selected_poste = _get_selected_poste_from_session(request)
     if not selected_poste:
         messages.warning(request, "يرجى اختيار الوظيفة أو المنصب أولًا.")
@@ -369,7 +368,6 @@ def candidate_information(request):
         "selected_poste": selected_poste,
         "communes_api_url": reverse("applications:communes_by_wilaya"),
         "selected_commune_id": selected_commune_id,
-        "primary_poste": application.get_primary_poste(),
         "page_title": "المعلومات الشخصية والمهنية",
         "page_subtitle": "يرجى تعبئة البيانات المطلوبة بدقة قبل متابعة الترشح.",
     }
