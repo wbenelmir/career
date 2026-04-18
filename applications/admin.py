@@ -7,7 +7,7 @@ from django.http import HttpResponseRedirect
 from django.shortcuts import render, get_object_or_404
 from django.urls import path, reverse
 from django.utils.html import format_html
-
+from django.utils.safestring import mark_safe
 from .models import CandidateProfile, Application, ApplicationChoice
 
 
@@ -277,7 +277,7 @@ class ApplicationAdmin(admin.ModelAdmin):
             for c in choices
         ])
 
-        return format_html(html)
+        return mark_safe(html)
 
     postes_summary.short_description = "ترتيب المناصب"
 
@@ -388,8 +388,16 @@ class ApplicationAdmin(admin.ModelAdmin):
     def get_urls(self):
         urls = super().get_urls()
         custom_urls = [
-            path("<int:application_id>/reject/preliminary/", self.admin_site.admin_view(self.reject_preliminary_view)),
-            path("<int:application_id>/reject/final/", self.admin_site.admin_view(self.reject_final_view)),
+            path(
+                "<int:application_id>/reject/preliminary/",
+                self.admin_site.admin_view(self.reject_preliminary_view),
+                name="applications_application_reject_preliminary",
+            ),
+            path(
+                "<int:application_id>/reject/final/",
+                self.admin_site.admin_view(self.reject_final_view),
+                name="applications_application_reject_final",
+            ),
         ]
         return custom_urls + urls
 
