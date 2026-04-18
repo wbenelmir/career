@@ -119,3 +119,4 @@ class Poste(models.Model):
             self.slug = slug
 
         super().save(*args, **kwargs)
+

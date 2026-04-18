@@ -1,4 +1,3 @@
-# root/admin.py
 from django.contrib import admin
 from django.utils.html import format_html
 from import_export import resources
@@ -20,9 +19,11 @@ class LegalReferenceResource(resources.ModelResource):
             "document_url",
             "is_active",
             "display_order",
+            "created_at",
+            "updated_at",
         )
         export_order = fields
-        import_id_fields = ("reference_number",)
+        import_id_fields = ("id",)
         skip_unchanged = True
         report_skipped = True
 
@@ -34,33 +35,35 @@ class LegalReferenceAdmin(ImportExportModelAdmin):
     list_display = (
         "title",
         "reference_number",
-        "reference_type_display",
+        "reference_type",
         "published_date",
         "is_active",
         "display_order",
     )
-
     list_filter = (
         "reference_type",
         "is_active",
         "published_date",
     )
-
     search_fields = (
         "title",
         "reference_number",
         "description",
     )
-
     list_editable = (
         "is_active",
         "display_order",
     )
-
+    ordering = (
+        "display_order",
+        "-published_date",
+        "title",
+    )
     readonly_fields = (
         "created_at",
         "updated_at",
     )
+    list_per_page = 50
 
     fieldsets = (
         ("البيانات الأساسية", {
@@ -91,14 +94,6 @@ class LegalReferenceAdmin(ImportExportModelAdmin):
         }),
     )
 
-    ordering = ("display_order", "-published_date", "title")
-    list_per_page = 50
-    save_on_top = True
-
-    def reference_type_display(self, obj):
-        return obj.get_reference_type_display()
-    reference_type_display.short_description = "التصنيف"
-
 
 class PosteResource(resources.ModelResource):
     class Meta:
@@ -111,26 +106,18 @@ class PosteResource(resources.ModelResource):
             "direction",
             "sub_direction",
             "positions_count",
-            "description", 
+            "description",
+            "legal_reference",
             "is_open",
             "publish_date",
             "deadline",
-            "legal_reference",
+            "created_at",
+            "updated_at",
         )
         export_order = fields
+        import_id_fields = ("id",)
         skip_unchanged = True
         report_skipped = True
-        import_id_fields = ("slug",)
-
-    def before_import_row(self, row, **kwargs):
-        mapping = {
-            "وظائف عليا": "transfer",
-            "مناصب عليا": "detachment",
-            "رتب": "head_office",
-        }
-        poste_type = row.get("poste_type")
-        if poste_type in mapping:
-            row["poste_type"] = mapping[poste_type]
 
 
 @admin.register(Poste)
@@ -138,26 +125,21 @@ class PosteAdmin(ImportExportModelAdmin):
     resource_class = PosteResource
 
     list_display = (
-        "id",
         "title",
-        "slug",
-        "poste_type_display",
         "direction",
         "sub_direction",
+        "poste_type",
         "positions_count",
-        "is_open_display",
+        "status_badge",
         "publish_date",
         "deadline",
-        "description",
     )
-
     list_filter = (
         "poste_type",
         "is_open",
         "publish_date",
         "deadline",
     )
-
     search_fields = (
         "title",
         "slug",
@@ -165,17 +147,18 @@ class PosteAdmin(ImportExportModelAdmin):
         "sub_direction",
         "description",
     )
-
-    autocomplete_fields = ("legal_reference",)
-
+    ordering = (
+        "-publish_date",
+        "-created_at",
+    )
     readonly_fields = (
         "created_at",
         "updated_at",
     )
-
     prepopulated_fields = {
         "slug": ("title",)
     }
+    list_per_page = 50
 
     fieldsets = (
         ("المعلومات الأساسية", {
@@ -199,22 +182,24 @@ class PosteAdmin(ImportExportModelAdmin):
             "fields": (
                 "publish_date",
                 "deadline",
+            )
+        }),
+        ("معلومات النظام", {
+            "fields": (
                 "created_at",
                 "updated_at",
             )
         }),
     )
 
-    ordering = ("-created_at",)
-    list_per_page = 50
-    save_on_top = True
-
-    def poste_type_display(self, obj):
-        return obj.get_poste_type_display()
-    poste_type_display.short_description = "نوع المنصب"
-
-    def is_open_display(self, obj):
+    @admin.display(description="الحالة")
+    def status_badge(self, obj):
         if obj.is_open:
-            return format_html('<span style="color: #198754; font-weight: 700;">مفتوح</span>')
-        return format_html('<span style="color: #dc3545; font-weight: 700;">مغلق</span>')
-    is_open_display.short_description = "الحالة"
+            return format_html(
+                '<span style="color: #198754; font-weight: 700;">{}</span>',
+                "مفتوح"
+            )
+        return format_html(
+            '<span style="color: #dc3545; font-weight: 700;">{}</span>',
+            "مغلق"
+        )

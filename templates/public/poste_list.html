@@ -19,7 +19,7 @@
                             <div>
                                 <h2 class="fw-bold mb-1">قائمة الوظائف والمناصب المتاحة</h2>
                                 <p class="section-subtitle mb-0">
-                                    اختر الفرصة المناسبة ثم انتقل مباشرة إلى استمارة الترشح.
+                                    استخدم التصفية حسب المديرية ونوع المنصب للوصول بسرعة إلى الفرصة المناسبة.
                                 </p>
                             </div>
 
@@ -34,29 +34,64 @@
                             {% endif %}
                         </div>
 
-                        <!-- FILTER -->
+                        <form method="get" class="filter-panel mb-4">
+                            <div class="row g-3 align-items-end">
+                                <div class="col-lg-8">
+                                    <label for="directionFilter" class="form-label fw-semibold">
+                                        المناصب المفتوحة حسب المديرية
+                                    </label>
+                                    <select name="direction"
+                                            id="directionFilter"
+                                            class="form-select"
+                                            onchange="this.form.submit()">
+                                        <option value="">كل المديريات</option>
+                                        {% for direction in directions %}
+                                            <option value="{{ direction }}" {% if direction == selected_direction %}selected{% endif %}>
+                                                {{ direction }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+
+                                <div class="col-lg-4">
+                                    <div class="d-flex flex-wrap gap-2">
+                                        {% if selected_type %}
+                                            <input type="hidden" name="type" value="{{ selected_type }}">
+                                        {% endif %}
+                                        <button type="submit" class="btn btn-outline-custom flex-grow-1">
+                                            <i class="bi bi-funnel ms-1"></i>
+                                            تصفية
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+
                         <div class="poste-filter-wrapper mb-4">
                             <div class="poste-filter-grid">
 
-                                <a href="{% url 'root:poste_list' %}"
-                                   class="poste-filter-item {% if not request.GET.type %}active{% endif %}">
+                                <a href="{% url 'root:poste_list' %}{% if selected_direction %}?direction={{ selected_direction|urlencode }}{% endif %}"
+                                   class="poste-filter-item {% if not selected_type %}active{% endif %}">
                                     <span class="filter-title">الكل</span>
                                     <span class="filter-subtitle">جميع الفرص</span>
                                 </a>
 
-                                <a href="?type=transfer"
-                                   class="poste-filter-item {% if request.GET.type == 'transfer' %}active{% endif %}">
+                                <a href="?type=transfer{% if selected_direction %}&direction={{ selected_direction|urlencode }}{% endif %}"
+                                   class="poste-filter-item {% if selected_type == 'transfer' %}active{% endif %}">
                                     <span class="filter-title">وظائف عليا</span>
+                                    <span class="filter-subtitle">الوظائف العليا المفتوحة</span>
                                 </a>
 
-                                <a href="?type=detachment"
-                                   class="poste-filter-item {% if request.GET.type == 'detachment' %}active{% endif %}">
+                                <a href="?type=detachment{% if selected_direction %}&direction={{ selected_direction|urlencode }}{% endif %}"
+                                   class="poste-filter-item {% if selected_type == 'detachment' %}active{% endif %}">
                                     <span class="filter-title">مناصب عليا</span>
+                                    <span class="filter-subtitle">المناصب العليا المفتوحة</span>
                                 </a>
 
-                                <a href="?type=head_office"
-                                   class="poste-filter-item {% if request.GET.type == 'head_office' %}active{% endif %}">
+                                <a href="?type=head_office{% if selected_direction %}&direction={{ selected_direction|urlencode }}{% endif %}"
+                                   class="poste-filter-item {% if selected_type == 'head_office' %}active{% endif %}">
                                     <span class="filter-title">رتب</span>
+                                    <span class="filter-subtitle">الرتب المفتوحة</span>
                                 </a>
 
                             </div>
@@ -68,29 +103,33 @@
                                 {% for poste in postes %}
                                     <div class="poste-item-card">
 
-                                        <!-- HEADER -->
                                         <div class="poste-item-head">
-                                            <div class="d-flex flex-wrap gap-2">
+                                            <div class="d-flex flex-wrap gap-2 align-items-center">
 
                                                 <span class="
+                                                    poste-type-badge
                                                     {% if poste.poste_type == 'transfer' %}badge-soft-success
                                                     {% elif poste.poste_type == 'detachment' %}badge-soft-warning
                                                     {% elif poste.poste_type == 'head_office' %}badge-soft-primary
+                                                    {% else %}badge-soft-secondary
                                                     {% endif %}
                                                 ">
                                                     {{ poste.get_poste_type_display }}
                                                 </span>
 
-                                                {% if poste.is_open %}
-                                                    <span class="badge-soft-success">مفتوح</span>
-                                                {% else %}
-                                                    <span class="badge-soft-danger">مغلق</span>
-                                                {% endif %}
+                                                <span class="badge-soft-success">مفتوح</span>
 
                                                 {% if poste.positions_count %}
-                                                    <span class="poste-chip">
+                                                    <span class="poste-meta-chip">
                                                         <i class="bi bi-people ms-1"></i>
-                                                        {{ poste.positions_count }}
+                                                        {{ poste.positions_count }} منصب
+                                                    </span>
+                                                {% endif %}
+
+                                                {% if poste.direction %}
+                                                    <span class="poste-meta-chip">
+                                                        <i class="bi bi-building ms-1"></i>
+                                                        {{ poste.direction }}
                                                     </span>
                                                 {% endif %}
                                             </div>
@@ -98,12 +137,11 @@
                                             {% if poste.deadline %}
                                                 <div class="poste-deadline">
                                                     <i class="bi bi-calendar-event ms-1"></i>
-                                                    {{ poste.deadline|date:"Y/m/d" }}
+                                                    آخر أجل: {{ poste.deadline|date:"Y/m/d" }}
                                                 </div>
                                             {% endif %}
                                         </div>
 
-                                        <!-- BODY -->
                                         <div class="poste-item-body">
 
                                             <h4 class="poste-title">
@@ -112,26 +150,15 @@
                                                 </a>
                                             </h4>
 
-                                            <!-- STRUCTURE -->
                                             <div class="poste-structure">
-
-                                                {% if poste.direction %}
-                                                    <div class="structure-line">
-                                                        <i class="bi bi-building"></i>
-                                                        {{ poste.direction }}
-                                                    </div>
-                                                {% endif %}
-
                                                 {% if poste.sub_direction %}
                                                     <div class="structure-line sub">
                                                         <i class="bi bi-diagram-3"></i>
                                                         {{ poste.sub_direction }}
                                                     </div>
                                                 {% endif %}
-
                                             </div>
 
-                                            <!-- DESCRIPTION -->
                                             <p class="poste-description">
                                                 {% if poste.description %}
                                                     {{ poste.description|truncatewords:22 }}
@@ -140,35 +167,27 @@
                                                 {% endif %}
                                             </p>
 
-                                            <!-- LEGAL -->
                                             {% if poste.legal_reference %}
                                                 <div class="poste-legal-box">
-                                                    <i class="bi bi-journal-text"></i>
+                                                    <i class="bi bi-journal-text ms-1"></i>
                                                     {{ poste.legal_reference.title }}
                                                 </div>
                                             {% endif %}
 
                                         </div>
 
-                                        <!-- ACTIONS -->
                                         <div class="poste-actions">
                                             <a href="{% url 'root:poste_detail' poste.slug %}"
-                                            class="btn btn-sm btn-outline-secondary-custom">
+                                               class="btn btn-sm btn-outline-secondary-custom">
                                                 <i class="bi bi-eye ms-1"></i>
                                                 التفاصيل
                                             </a>
 
-                                            {% if poste.is_open %}
-                                                <a href="{% url 'applications:start_application_with_slug' poste.slug %}"
-                                                class="btn btn-sm btn-outline-custom">
-                                                    <i class="bi bi-send-check ms-1"></i>
-                                                    الترشح
-                                                </a>
-                                            {% else %}
-                                                <button class="btn btn-sm btn-outline-secondary-custom" disabled>
-                                                    غير متاح
-                                                </button>
-                                            {% endif %}
+                                            <a href="{% url 'applications:start_application_with_slug' poste.slug %}"
+                                               class="btn btn-sm btn-outline-custom">
+                                                <i class="bi bi-send-check ms-1"></i>
+                                                الترشح
+                                            </a>
                                         </div>
 
                                     </div>
@@ -176,7 +195,6 @@
 
                             </div>
 
-                            <!-- PAGINATION (كما هو) -->
                             {% if page_obj and page_obj.paginator.num_pages > 1 %}
                                 <nav class="mt-4">
                                     <ul class="pagination justify-content-center flex-wrap gap-2 pagination-soft">
@@ -184,7 +202,7 @@
                                         {% if page_obj.has_previous %}
                                             <li class="page-item">
                                                 <a class="page-link"
-                                                   href="?{% if request.GET.type %}type={{ request.GET.type }}&{% endif %}page={{ page_obj.previous_page_number }}">
+                                                   href="?{% if selected_type %}type={{ selected_type|urlencode }}&{% endif %}{% if selected_direction %}direction={{ selected_direction|urlencode }}&{% endif %}page={{ page_obj.previous_page_number }}">
                                                     السابق
                                                 </a>
                                             </li>
@@ -198,7 +216,7 @@
                                             {% elif num >= page_obj.number|add:'-2' and num <= page_obj.number|add:'2' %}
                                                 <li class="page-item">
                                                     <a class="page-link"
-                                                       href="?{% if request.GET.type %}type={{ request.GET.type }}&{% endif %}page={{ num }}">
+                                                       href="?{% if selected_type %}type={{ selected_type|urlencode }}&{% endif %}{% if selected_direction %}direction={{ selected_direction|urlencode }}&{% endif %}page={{ num }}">
                                                         {{ num }}
                                                     </a>
                                                 </li>
@@ -208,7 +226,7 @@
                                         {% if page_obj.has_next %}
                                             <li class="page-item">
                                                 <a class="page-link"
-                                                   href="?{% if request.GET.type %}type={{ request.GET.type }}&{% endif %}page={{ page_obj.next_page_number }}">
+                                                   href="?{% if selected_type %}type={{ selected_type|urlencode }}&{% endif %}{% if selected_direction %}direction={{ selected_direction|urlencode }}&{% endif %}page={{ page_obj.next_page_number }}">
                                                     التالي
                                                 </a>
                                             </li>
@@ -221,8 +239,8 @@
                         {% else %}
                             <div class="empty-state">
                                 <i class="bi bi-briefcase"></i>
-                                <h4>لا توجد فرص حاليًا</h4>
-                                <p>يرجى العودة لاحقًا.</p>
+                                <h4>لا توجد فرص مطابقة حاليًا</h4>
+                                <p>جرّب تغيير المديرية أو نوع المنصب، أو عد لاحقًا للاطلاع على الإعلانات الجديدة.</p>
                             </div>
                         {% endif %}
 
@@ -230,14 +248,28 @@
                 </div>
             </div>
 
-            <!-- SIDE -->
             <div class="col-lg-4">
-                <div class="custom-card">
+                <div class="custom-card mb-4">
                     <div class="card-body">
                         <h3 class="section-title">إرشادات</h3>
-                        <p class="text-muted small">
-                            تأكد من اختيار المنصب المناسب وفق المديرية والمديرية الفرعية.
+                        <p class="text-muted small mb-0">
+                            ابدأ أولًا بتحديد المديرية، ثم قم بتضييق النتائج حسب نوع المنصب للوصول بسرعة إلى الفرص المناسبة.
                         </p>
+                    </div>
+                </div>
+
+                <div class="custom-card">
+                    <div class="card-body">
+                        <div class="d-grid gap-2">
+                            <a href="{% url 'applications:start_application' %}" class="btn btn-outline-custom">
+                                <i class="bi bi-send-check ms-1"></i>
+                                بدء الترشح
+                            </a>
+                            <a href="{% url 'tracking:track_application' %}" class="btn btn-outline-secondary-custom">
+                                <i class="bi bi-search ms-1"></i>
+                                تتبع طلب
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -247,22 +279,121 @@
 </section>
 
 <style>
+.filter-panel {
+    padding: 18px;
+    border: 1px solid #e9f4f0;
+    border-radius: 20px;
+    background: #fbfefd;
+}
+
+.poste-filter-wrapper {
+    margin-bottom: 1.5rem;
+}
+
+.poste-filter-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.poste-filter-item {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: 86px;
+    padding: 14px 18px;
+    border: 1.5px solid #20c997;
+    border-radius: 18px;
+    background: #fff;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.poste-filter-item:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.06);
+}
+
+.poste-filter-item .filter-title {
+    font-weight: 700;
+    font-size: 1.05rem;
+    color: #12b886;
+    margin-bottom: 4px;
+    line-height: 1.6;
+}
+
+.poste-filter-item .filter-subtitle {
+    font-size: 0.85rem;
+    color: #6c757d;
+    line-height: 1.7;
+}
+
+.poste-filter-item.active {
+    background: linear-gradient(135deg, #1fbf96 0%, #149f7f 100%);
+    border-color: #1fbf96;
+    box-shadow: 0 10px 24px rgba(31, 191, 150, 0.22);
+}
+
+.poste-filter-item.active .filter-title,
+.poste-filter-item.active .filter-subtitle {
+    color: #fff;
+}
+
 .poste-item-card {
     border: 1px solid #e9ecef;
     border-radius: 20px;
     padding: 18px;
     background: #fff;
+    transition: all 0.2s ease;
+}
+
+.poste-item-card:hover {
+    border-color: rgba(31, 191, 150, 0.45);
+    box-shadow: 0 12px 28px rgba(13, 110, 253, 0.05);
+    transform: translateY(-1px);
 }
 
 .poste-item-head {
     display: flex;
     justify-content: space-between;
-    margin-bottom: 10px;
+    gap: 12px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.poste-type-badge {
+    padding: 0.55rem 0.9rem;
+    border-radius: 999px;
+}
+
+.poste-meta-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 0.42rem 0.75rem;
+    border-radius: 999px;
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    color: #495057;
+    font-size: 0.84rem;
+    font-weight: 600;
 }
 
 .poste-title {
     font-weight: 800;
     font-size: 1.2rem;
+    line-height: 1.75;
+    margin-bottom: 10px;
+}
+
+.poste-title a {
+    color: var(--primary-dark);
+    text-decoration: none;
+}
+
+.poste-title a:hover {
+    color: var(--primary-color);
 }
 
 .poste-structure {
@@ -272,15 +403,39 @@
 .structure-line {
     font-size: 0.95rem;
     color: #6c757d;
+    line-height: 1.8;
 }
 
 .structure-line.sub {
-    margin-right: 10px;
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    color: #5f6b76;
+}
+
+.structure-line.sub i {
+    color: #12b886;
+    margin-top: 2px;
 }
 
 .poste-description {
     font-size: 0.95rem;
     color: #6c757d;
+    line-height: 1.9;
+    margin-bottom: 12px;
+}
+
+.poste-legal-box {
+    display: inline-flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 10px 12px;
+    border-radius: 14px;
+    background: #f8faf9;
+    border: 1px solid #edf2f0;
+    color: #5f6b76;
+    font-size: 0.9rem;
 }
 
 .poste-actions {
@@ -314,6 +469,16 @@
     border-color: #adb5bd;
 }
 
+.poste-deadline {
+    font-size: 0.85rem;
+    color: #b45309;
+    background: #fff7ed;
+    border: 1px solid #fed7aa;
+    border-radius: 999px;
+    padding: 0.4rem 0.75rem;
+    font-weight: 600;
+}
+
 @media (max-width: 991.98px) {
     .poste-actions {
         justify-content: stretch;
@@ -326,15 +491,10 @@
     }
 }
 
-.poste-chip {
-    background: #f1f3f5;
-    padding: 4px 10px;
-    border-radius: 999px;
-}
-
-.poste-deadline {
-    font-size: 0.8rem;
-    color: #b45309;
+@media (max-width: 767.98px) {
+    .poste-filter-grid {
+        grid-template-columns: 1fr;
+    }
 }
 </style>
 

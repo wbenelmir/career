@@ -17,18 +17,35 @@ from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 from reportlab.lib.utils import ImageReader
 
+from locations.models import Commune
 from root.models import Poste
 from documents.models import ApplicationDocument
-from locations.models import Commune
 
-from .forms import ApplicationForm, CandidateProfileForm
-from .models import Application, CandidateProfile
+from .models import ApplicationChoice
+from .forms import ApplicationForm, CandidateProfileForm, MotivationForm
+from .models import Application, ApplicationChoice, CandidateProfile
 from .pdf_utils import register_arabic_font, rtl_text, ARABIC_FONT_NAME
 from .utils import build_tracking_url, generate_qr_base64, generate_qr_png_bytes
 from notifications.tasks import (
     send_application_submitted_email_task,
     send_admin_new_application_email_task,
 )
+
+def _get_selected_postes_from_session(request):
+    ids = request.session.get("selected_poste_ids", [])
+    if not ids:
+        return []
+
+    today = timezone.localdate()
+
+    return list(
+        Poste.objects.filter(
+            id__in=[i for i in ids if i],
+            is_open=True
+        ).filter(
+            Q(deadline__isnull=True) | Q(deadline__gte=today)
+        )
+    )
 
 def _validate_uploaded_document(uploaded_file, requirement):
     extension = os.path.splitext(uploaded_file.name.lower())[1].lstrip('.')
@@ -96,21 +113,36 @@ def _get_draft_application_from_session(request):
     )
 
 
-def _get_or_create_draft_application(poste, candidate):
+def _get_or_create_draft_application(poste, candidate, request=None):
     try:
-        application, _ = Application.objects.get_or_create(
+        application, created = Application.objects.get_or_create(
             poste=poste,
             candidate=candidate,
             defaults={"status": Application.Status.DRAFT}
         )
     except IntegrityError:
         application = Application.objects.get(poste=poste, candidate=candidate)
+        created = False
+
+    # If we just created the application and have a request context, we can initialize the application choices based on the selected postes in the session
+    if created and request:
+        selected_ids = request.session.get("selected_poste_ids", [])
+
+        for index, poste_id in enumerate(selected_ids, start=1):
+            if not poste_id:
+                continue
+
+            ApplicationChoice.objects.create(
+                application=application,
+                poste_id=poste_id,
+                priority=index
+            )
 
     return application
 
-
 def _clear_application_session(request):
     request.session.pop("selected_poste_id", None)
+    request.session.pop("selected_poste_ids", None)
     request.session.pop("candidate_id", None)
     request.session.pop("draft_application_id", None)
 
@@ -231,14 +263,29 @@ def start_application(request, slug=None):
         form = ApplicationForm(request.POST)
 
         if form.is_valid():
-            poste = selected_poste if selected_poste else form.cleaned_data["poste"]
+            poste_1 = form.cleaned_data.get("poste_1")
+            poste_2 = form.cleaned_data.get("poste_2")
+            poste_3 = form.cleaned_data.get("poste_3")
 
-            request.session["selected_poste_id"] = poste.id
+            selected_postes = [
+                poste_1.id if poste_1 else None,
+                poste_2.id if poste_2 else None,
+                poste_3.id if poste_3 else None,
+            ]
+
+            # save selected postes in session to use in next steps
+            request.session["selected_poste_ids"] = selected_postes
+
+            # For backward compatibility, also set the primary poste in session
+            request.session["selected_poste_id"] = poste_1.id
+
             request.session.pop("candidate_id", None)
             request.session.pop("draft_application_id", None)
 
+            print("Selected postes:", selected_postes)
             return redirect("applications:candidate_information")
     else:
+        print("GET request - checking for slug and open postes")
         initial = {}
         if selected_poste:
             initial["poste"] = selected_poste
@@ -251,6 +298,7 @@ def start_application(request, slug=None):
     else:
         page_subtitle = "اختر الوظيفة أو المنصب الذي تريد الترشح له ثم اضغط على متابعة الترشح."
 
+    print("Rendering start application page with context:")
     context = {
         "form": form,
         "selected_poste": selected_poste,
@@ -263,6 +311,8 @@ def start_application(request, slug=None):
 
 
 def candidate_information(request):
+    
+    application = _get_draft_application_from_session(request)
     selected_poste = _get_selected_poste_from_session(request)
     if not selected_poste:
         messages.warning(request, "يرجى اختيار الوظيفة أو المنصب أولًا.")
@@ -271,12 +321,40 @@ def candidate_information(request):
     if request.method == "POST":
         form = CandidateProfileForm(request.POST)
         if form.is_valid():
+            national_id_number = form.cleaned_data.get("national_id_number")
+
+            # check for existing active applications with the same national ID number
+            active_applications = Application.objects.filter(
+                candidate__national_id_number=national_id_number,
+                status__in=[
+                    Application.Status.SUBMITTED,
+                    Application.Status.UNDER_REVIEW,
+                    Application.Status.PRESELECTED,
+                    Application.Status.INTERVIEW_SCHEDULED,
+                    Application.Status.INTERVIEW_COMPLETED,
+                ]
+            )
+
+            if active_applications.exists():
+                messages.error(
+                    request,
+                    "لديك طلب ترشح نشط (قيد الدراسة أو المعالجة). "
+                    "يرجى انتظار نتيجة الطلب الحالي قبل تقديم طلب جديد."
+                )
+                active_application = active_applications.first()
+
+                return redirect(
+                    "tracking:tracking_result_direct",
+                    tracking_code=active_application.tracking_code
+                )
+
+            # Save candidate profile if valid and no active applications exist with the same national ID number
             candidate = form.save()
 
             request.session["candidate_id"] = candidate.id
             request.session.pop("draft_application_id", None)
 
-            return redirect("applications:upload_documents")
+            return redirect("applications:motivation_step")
     else:
         form = CandidateProfileForm()
 
@@ -291,11 +369,51 @@ def candidate_information(request):
         "selected_poste": selected_poste,
         "communes_api_url": reverse("applications:communes_by_wilaya"),
         "selected_commune_id": selected_commune_id,
+        "primary_poste": application.get_primary_poste(),
         "page_title": "المعلومات الشخصية والمهنية",
         "page_subtitle": "يرجى تعبئة البيانات المطلوبة بدقة قبل متابعة الترشح.",
     }
     return render(request, "public/applications/candidate_information.html", context)
 
+def motivation_step(request):
+    selected_poste = _get_selected_poste_from_session(request)
+    candidate = _get_candidate_from_session(request)
+
+    if not selected_poste or not candidate:
+        messages.warning(request, "يرجى استكمال المراحل السابقة أولًا.")
+        return redirect("applications:start_application")
+
+    # Get rendom condidate and poste for testing purposes
+    # candidate = CandidateProfile.objects.first()
+    # selected_poste = Poste.objects.first()
+
+    application = _get_or_create_draft_application(
+        poste=selected_poste,
+        candidate=candidate,
+        request=request
+    )
+
+    if request.method == "POST":
+        form = MotivationForm(request.POST)
+        if form.is_valid():
+            application.motivation_text = form.cleaned_data["motivation_text"]
+            application.save()
+
+            request.session["draft_application_id"] = application.id
+
+            return redirect("applications:upload_documents")
+    else:
+        form = MotivationForm(initial={
+            "motivation_text": application.motivation_text
+        })
+
+    context = {
+        "form": form,
+        "page_title": "الرسالة التحفيزية",
+        "page_subtitle": "اكتب رسالة تبرز دوافعك وأسباب ترشحك.",
+    }
+
+    return render(request, "public/applications/motivation.html", context)
 
 @require_http_methods(["GET", "POST"])
 def upload_documents(request):
@@ -308,7 +426,8 @@ def upload_documents(request):
 
     application = _get_or_create_draft_application(
         poste=selected_poste,
-        candidate=candidate
+        candidate=candidate,
+        request=request
     )
 
     if application.status != Application.Status.DRAFT:
@@ -401,7 +520,8 @@ def upload_single_document(request):
 
     application = _get_or_create_draft_application(
         poste=selected_poste,
-        candidate=candidate
+        candidate=candidate,
+        request=request
     )
 
     if application.status != Application.Status.DRAFT:
@@ -478,9 +598,8 @@ def upload_single_document(request):
 
 def review_application(request):
     application = _get_draft_application_from_session(request)
-    selected_poste = _get_selected_poste_from_session(request)
 
-    if not application or not selected_poste or application.status != Application.Status.DRAFT:
+    if not application or application.status != Application.Status.DRAFT:
         messages.warning(request, "لا يوجد ملف جاهز للمراجعة.")
         return redirect("applications:start_application")
 
@@ -488,16 +607,20 @@ def review_application(request):
     is_complete = len(missing_documents) == 0
     candidate_summary = _build_candidate_summary(application.candidate)
 
+    choices = application.get_ordered_choices()
+
     context = {
         "application": application,
-        "selected_poste": selected_poste,
         "candidate_summary": candidate_summary,
         "uploaded_documents": uploaded_documents,
         "missing_documents": missing_documents,
         "is_complete": is_complete,
+        "choices": choices,
+        "primary_poste": application.get_primary_poste(),
         "page_title": "مراجعة الطلب",
-        "page_subtitle": "راجع معلوماتك ووثائقك بعناية قبل الإرسال النهائي.",
+        "page_subtitle": "راجع معلوماتك بعناية قبل الإرسال.",
     }
+
     return render(request, "public/applications/review_application.html", context)
 
 
@@ -506,25 +629,32 @@ def submit_application(request):
     application = _get_draft_application_from_session(request)
 
     if not application:
-        messages.warning(request, "There is no application ready for submission.")
+        messages.warning(request, "لا يوجد طلب جاهز للإرسال.")
         return redirect("applications:start_application")
 
     if application.status != Application.Status.DRAFT:
-        messages.warning(request, "This application has already been submitted or processed.")
+        messages.warning(request, "تم إرسال هذا الطلب مسبقًا.")
         return redirect("applications:start_application")
 
+    # NEW: enforce motivation
+    if not application.motivation_text:
+        messages.error(request, "يجب إدخال الرسالة التحفيزية قبل إرسال الطلب.")
+        return redirect("applications:motivation_step")
+
+    # existing validation
     if not application.has_all_required_documents():
         missing_required = application.get_missing_required_documents()
+
         if missing_required.exists():
             missing_names = ", ".join(missing_required.values_list("name", flat=True))
             messages.error(
                 request,
-                f"Submission is not allowed until all required documents are uploaded: {missing_names}"
+                f"لا يمكن الإرسال حتى يتم رفع جميع الوثائق المطلوبة: {missing_names}"
             )
         else:
             messages.error(
                 request,
-                "Submission is not allowed until all required documents are uploaded."
+                "لا يمكن الإرسال حتى يتم رفع جميع الوثائق المطلوبة."
             )
 
         return redirect("applications:review_application")
@@ -551,16 +681,20 @@ def application_success(request, tracking_code):
     tracking_url = build_tracking_url(request, application.tracking_code)
     qr_code_base64 = generate_qr_base64(tracking_url)
 
+    choices = application.get_ordered_choices()
+
     context = {
         "application": application,
-        "application_number": getattr(application, "application_number", ""),
-        "tracking_code": getattr(application, "tracking_code", ""),
-        "selected_poste": application.poste,
+        "application_number": application.application_number,
+        "tracking_code": application.tracking_code,
+        "primary_poste": application.get_primary_poste(),
+        "choices": choices,
         "tracking_url": tracking_url,
         "qr_code_base64": qr_code_base64,
         "page_title": "تم إرسال الطلب بنجاح",
-        "page_subtitle": "احتفظ برمز التتبع أو قم بتحميل وصل التسجيل.",
+        "page_subtitle": "احتفظ برمز التتبع.",
     }
+
     return render(request, "public/applications/application_success.html", context)
 
 

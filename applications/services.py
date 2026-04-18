@@ -1,6 +1,7 @@
 # applications/services.py
 
 from django.core.exceptions import ValidationError
+from .models import Application
 
 
 class ApplicationService:
@@ -9,6 +10,10 @@ class ApplicationService:
         if application.status != application.Status.DRAFT:
             raise ValidationError("لا يمكن إرسال طلب ليس في حالة مسودة.")
 
+        # Check if the candidate already has an active application before allowing submission
+        if ApplicationService.check_candidate_has_active_application(application.candidate):
+            raise ValidationError("لديك طلب نشط بالفعل.")
+    
         return application.set_status(
             application.Status.SUBMITTED,
             changed_by=changed_by,
@@ -71,3 +76,15 @@ class ApplicationService:
             note=note,
             visible_to_candidate=True,
         )
+    @staticmethod
+    def check_candidate_has_active_application(candidate):
+        return Application.objects.filter(
+            candidate=candidate,
+            status__in=[
+                Application.Status.SUBMITTED,
+                Application.Status.UNDER_REVIEW,
+                Application.Status.PRESELECTED,
+                Application.Status.INTERVIEW_SCHEDULED,
+                Application.Status.INTERVIEW_COMPLETED,
+            ]
+        ).exists()

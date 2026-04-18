@@ -15,12 +15,12 @@
                         منصة الترشح للوظائف والمناصب العليا
                     </span>
 
-                    <h1 class="fw-bold mb-3" style="font-size: 2.3rem; line-height: 1.7; color: var(--primary-dark);">
+                    <h1 class="fw-bold mb-3 hero-title">
                         منصة استقبال ودراسة طلبات الترشح
-                        <span style="color: var(--primary-color);">للوظائف والمناصب العليا</span>
+                        <span class="hero-title-accent">للوظائف والمناصب العليا</span>
                     </h1>
 
-                    <p class="text-muted mb-4" style="font-size: 1.05rem; line-height: 2;">
+                    <p class="text-muted mb-4 hero-subtitle">
                         تتيح هذه المنصة للمترشحين الاطلاع على الوظائف والمناصب العليا المفتوحة،
                         وتقديم طلبات الترشح وفق الشروط والتنظيمات المعمول بها، مع إمكانية
                         متابعة حالة الملف باستعمال رمز التتبع بعد الإرسال النهائي.
@@ -48,7 +48,9 @@
                         <h3 class="section-title mb-3">معلومات سريعة</h3>
 
                         <div class="d-flex align-items-start gap-3 mb-4">
-                            <div class="badge-soft-success"><i class="bi bi-file-earmark-check"></i></div>
+                            <div class="badge-soft-success">
+                                <i class="bi bi-file-earmark-check"></i>
+                            </div>
                             <div>
                                 <h6 class="fw-bold mb-1">إيداع إلكتروني منظم</h6>
                                 <p class="text-muted mb-0 small">
@@ -58,7 +60,9 @@
                         </div>
 
                         <div class="d-flex align-items-start gap-3 mb-4">
-                            <div class="badge-soft-info"><i class="bi bi-briefcase"></i></div>
+                            <div class="badge-soft-info">
+                                <i class="bi bi-briefcase"></i>
+                            </div>
                             <div>
                                 <h6 class="fw-bold mb-1">وظائف ومناصب متعددة</h6>
                                 <p class="text-muted mb-0 small">
@@ -68,7 +72,9 @@
                         </div>
 
                         <div class="d-flex align-items-start gap-3">
-                            <div class="badge-soft-warning"><i class="bi bi-clock-history"></i></div>
+                            <div class="badge-soft-warning">
+                                <i class="bi bi-clock-history"></i>
+                            </div>
                             <div>
                                 <h6 class="fw-bold mb-1">تتبع حالة الملف</h6>
                                 <p class="text-muted mb-0 small">
@@ -97,36 +103,38 @@
                             <div>
                                 <h3 class="section-title mb-1">الوظائف والمناصب المفتوحة</h3>
                                 <p class="section-subtitle mb-0">
-                                    يمكنكم الاطلاع على الفرص المفتوحة والتوجه مباشرة إلى صفحة الترشح.
+                                    يتم عرض عينة متنوعة من الفرص المفتوحة، ويمكنكم الانتقال إلى القائمة الكاملة للاطلاع على جميع المناصب.
                                 </p>
                             </div>
                         </div>
 
                         <div class="poste-filter-wrapper mb-4">
                             <div class="poste-filter-grid">
+
                                 <a href="{% url 'root:home' %}"
-                                   class="poste-filter-item {% if not request.GET.type %}active{% endif %}">
+                                   class="poste-filter-item {% if not selected_type %}active{% endif %}">
                                     <span class="filter-title">الكل</span>
                                     <span class="filter-subtitle">جميع الفرص المفتوحة</span>
                                 </a>
 
                                 <a href="{% url 'root:home' %}?type=transfer"
-                                   class="poste-filter-item {% if request.GET.type == 'transfer' %}active{% endif %}">
+                                   class="poste-filter-item {% if selected_type == 'transfer' %}active{% endif %}">
                                     <span class="filter-title">وظائف عليا</span>
                                     <span class="filter-subtitle">الوظائف العليا المفتوحة للترشح</span>
                                 </a>
 
                                 <a href="{% url 'root:home' %}?type=detachment"
-                                   class="poste-filter-item {% if request.GET.type == 'detachment' %}active{% endif %}">
+                                   class="poste-filter-item {% if selected_type == 'detachment' %}active{% endif %}">
                                     <span class="filter-title">مناصب عليا</span>
                                     <span class="filter-subtitle">المناصب العليا المفتوحة للترشح</span>
                                 </a>
 
                                 <a href="{% url 'root:home' %}?type=head_office"
-                                   class="poste-filter-item {% if request.GET.type == 'head_office' %}active{% endif %}">
+                                   class="poste-filter-item {% if selected_type == 'head_office' %}active{% endif %}">
                                     <span class="filter-title">رتب</span>
                                     <span class="filter-subtitle">الرتب المفتوحة للترشح</span>
                                 </a>
+
                             </div>
                         </div>
 
@@ -155,6 +163,13 @@
                                                         {{ poste.positions_count }} منصب
                                                     </span>
                                                 {% endif %}
+
+                                                {% if poste.direction %}
+                                                    <span class="poste-meta-chip">
+                                                        <i class="bi bi-building ms-1"></i>
+                                                        {{ poste.direction }}
+                                                    </span>
+                                                {% endif %}
                                             </div>
 
                                             {% if poste.deadline %}
@@ -172,13 +187,6 @@
                                             </h5>
 
                                             <div class="poste-structure mb-3">
-                                                {% if poste.direction %}
-                                                    <div class="poste-structure-line">
-                                                        <i class="bi bi-building"></i>
-                                                        <span>{{ poste.direction }}</span>
-                                                    </div>
-                                                {% endif %}
-
                                                 {% if poste.sub_direction %}
                                                     <div class="poste-structure-line">
                                                         <i class="bi bi-diagram-3"></i>
@@ -190,6 +198,10 @@
                                             {% if poste.description %}
                                                 <p class="poste-description mb-3">
                                                     {{ poste.description|truncatewords:18 }}
+                                                </p>
+                                            {% else %}
+                                                <p class="poste-description mb-3">
+                                                    لا توجد معلومات وصفية إضافية متاحة لهذا المنصب حاليًا.
                                                 </p>
                                             {% endif %}
 
@@ -264,7 +276,9 @@
                         <div class="d-flex flex-column gap-3 mb-4">
 
                             <div class="soft-box d-flex align-items-start gap-3">
-                                <div class="badge-soft-info"><i class="bi bi-person-check"></i></div>
+                                <div class="badge-soft-info">
+                                    <i class="bi bi-person-check"></i>
+                                </div>
                                 <div>
                                     <h6 class="fw-bold mb-1">التحقق من المعلومات</h6>
                                     <p class="text-muted small mb-0">
@@ -274,17 +288,21 @@
                             </div>
 
                             <div class="soft-box d-flex align-items-start gap-3">
-                                <div class="badge-soft-success"><i class="bi bi-briefcase"></i></div>
+                                <div class="badge-soft-success">
+                                    <i class="bi bi-briefcase"></i>
+                                </div>
                                 <div>
                                     <h6 class="fw-bold mb-1">اختيار الفرصة المناسبة</h6>
                                     <p class="text-muted small mb-0">
-                                        اطلع على التفاصيل التنظيمية للمنصب، وتحقق من المديرية والمديرية الفرعية المرتبطتين به قبل البدء في الترشح.
+                                        اطلع على تفاصيل المنصب، وتحقق من المديرية والمديرية الفرعية المرتبطتين به قبل البدء في الترشح.
                                     </p>
                                 </div>
                             </div>
 
                             <div class="soft-box d-flex align-items-start gap-3">
-                                <div class="badge-soft-warning"><i class="bi bi-file-earmark-arrow-up"></i></div>
+                                <div class="badge-soft-warning">
+                                    <i class="bi bi-file-earmark-arrow-up"></i>
+                                </div>
                                 <div>
                                     <h6 class="fw-bold mb-1">إرفاق الوثائق المطلوبة</h6>
                                     <p class="text-muted small mb-0">
@@ -294,7 +312,9 @@
                             </div>
 
                             <div class="soft-box d-flex align-items-start gap-3">
-                                <div class="badge-soft-primary"><i class="bi bi-search"></i></div>
+                                <div class="badge-soft-primary">
+                                    <i class="bi bi-search"></i>
+                                </div>
                                 <div>
                                     <h6 class="fw-bold mb-1">الاحتفاظ برمز التتبع</h6>
                                     <p class="text-muted small mb-0">
@@ -328,6 +348,21 @@
 </section>
 
 <style>
+.hero-title {
+    font-size: 2.3rem;
+    line-height: 1.7;
+    color: var(--primary-dark);
+}
+
+.hero-title-accent {
+    color: var(--primary-color);
+}
+
+.hero-subtitle {
+    font-size: 1.05rem;
+    line-height: 2;
+}
+
 .poste-filter-wrapper {
     margin-bottom: 1.5rem;
 }

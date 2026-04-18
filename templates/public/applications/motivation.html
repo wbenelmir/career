@@ -1,0 +1,154 @@
+{% extends "base/public_base.html" %}
+
+{% block title %}الرسالة التحفيزية{% endblock %}
+
+{% block page_header %}
+    {% include "includes/public/page_header.html" with page_title=page_title page_subtitle=page_subtitle %}
+{% endblock %}
+
+{% block content %}
+<section class="section-padding pt-0">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+
+                <div class="custom-card shadow-sm border-0">
+                    <div class="card-body p-4 p-lg-5">
+
+                        <!-- Header -->
+                        <div class="text-center mb-4">
+                            <span class="badge-soft-primary px-3 py-2">الخطوة 3 من 6</span>
+                        </div>
+
+                        <div class="mb-4 text-center">
+                            <h2 class="section-title mb-2">الرسالة التحفيزية</h2>
+                            <p class="text-muted mb-0" style="line-height:1.9;">
+                                اكتب رسالة تبرز دوافعك، خبرتك، ولماذا ترى نفسك مناسبًا للمناصب المختارة.
+                            </p>
+                        </div>
+
+                        <!-- Instructions -->
+                        <div class="alert alert-light border mb-4">
+                            <ul class="rtl-list mb-0 small" style="line-height:1.9;">
+                                <li>اشرح خبرتك المهنية بإيجاز.</li>
+                                <li>وضح سبب اهتمامك بالمنصب.</li>
+                                <li>بيّن القيمة التي يمكنك إضافتها.</li>
+                                <li>تجنب النسخ واللصق أو النصوص العامة.</li>
+                            </ul>
+                        </div>
+
+                        <form method="post" id="motivationForm">
+                            {% csrf_token %}
+
+                            <!-- Textarea -->
+                            <div class="mb-3">
+                                {{ form.motivation_text }}
+                            </div>
+
+                            <!-- Live Stats -->
+                            <div class="d-flex justify-content-between align-items-center small mb-2">
+                                <span id="wordCount" class="fw-semibold">0 كلمة</span>
+                                <span class="text-muted">الحد الأدنى: 100 | الحد الأقصى: 500</span>
+                            </div>
+
+                            <!-- Progress bar -->
+                            <div class="progress mb-3" style="height: 6px;">
+                                <div id="progressBar" class="progress-bar" style="width: 0%"></div>
+                            </div>
+
+                            <!-- Feedback -->
+                            <div id="feedbackMessage" class="small mb-3 text-muted">
+                                ابدأ في كتابة رسالتك...
+                            </div>
+
+                            {% if form.motivation_text.errors %}
+                                <div class="alert alert-danger small">
+                                    {{ form.motivation_text.errors }}
+                                </div>
+                            {% endif %}
+
+                            <!-- Actions -->
+                            <div class="d-flex justify-content-between align-items-center mt-4 flex-wrap gap-3">
+
+                                <a href="{% url 'applications:candidate_information' %}"
+                                   class="btn btn-outline-custom px-4">
+                                    الرجوع
+                                </a>
+
+                                <button type="submit"
+                                        id="submitBtn"
+                                        class="btn btn-primary-custom px-5">
+                                    متابعة
+                                </button>
+
+                            </div>
+
+                            <div class="submit-helper-text mt-3">
+                                سيتم حفظ الرسالة ضمن ملف الترشح ويمكن تعديلها قبل الإرسال النهائي.
+                            </div>
+
+                        </form>
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+// Live UX logic
+document.addEventListener("DOMContentLoaded", function () {
+    const textarea = document.querySelector("textarea");
+    const counter = document.getElementById("wordCount");
+    const progress = document.getElementById("progressBar");
+    const feedback = document.getElementById("feedbackMessage");
+    const submitBtn = document.getElementById("submitBtn");
+
+    const MIN = 100;
+    const MAX = 500;
+
+    function update() {
+        const words = textarea.value.trim().split(/\s+/).filter(w => w.length > 0);
+        const count = words.length;
+
+        counter.textContent = count + " كلمة";
+
+        // progress %
+        const percent = Math.min((count / MAX) * 100, 100);
+        progress.style.width = percent + "%";
+
+        // state handling
+        if (count === 0) {
+            feedback.textContent = "ابدأ في كتابة رسالتك...";
+            feedback.className = "small text-muted";
+            submitBtn.disabled = true;
+            progress.className = "progress-bar bg-secondary";
+        }
+        else if (count < MIN) {
+            feedback.textContent = "الرسالة قصيرة، حاول إضافة تفاصيل أكثر.";
+            feedback.className = "small text-warning fw-semibold";
+            submitBtn.disabled = true;
+            progress.className = "progress-bar bg-warning";
+        }
+        else if (count > MAX) {
+            feedback.textContent = "تجاوزت الحد الأقصى، يرجى تقليص النص.";
+            feedback.className = "small text-danger fw-semibold";
+            submitBtn.disabled = true;
+            progress.className = "progress-bar bg-danger";
+        }
+        else {
+            feedback.textContent = "ممتاز، يمكنك المتابعة.";
+            feedback.className = "small text-success fw-semibold";
+            submitBtn.disabled = false;
+            progress.className = "progress-bar bg-success";
+        }
+    }
+
+    textarea.addEventListener("input", update);
+    update();
+});
+</script>
+
+{% endblock %}

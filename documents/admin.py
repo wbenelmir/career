@@ -1,11 +1,30 @@
 # documents/admin.py
 from django.contrib import admin
+from import_export import resources
+from import_export.admin import ImportExportModelAdmin
 
 from .models import DocumentType, ApplicationDocument, PosteDocumentRequirement
 
 
+class DocumentTypeResource(resources.ModelResource):
+    class Meta:
+        model = DocumentType
+
+
+class ApplicationDocumentResource(resources.ModelResource):
+    class Meta:
+        model = ApplicationDocument
+
+
+class PosteDocumentRequirementResource(resources.ModelResource):
+    class Meta:
+        model = PosteDocumentRequirement
+
+
 @admin.register(DocumentType)
-class DocumentTypeAdmin(admin.ModelAdmin):
+class DocumentTypeAdmin(ImportExportModelAdmin):
+    resource_class = DocumentTypeResource
+
     list_display = (
         "name",
         "is_required",
@@ -26,7 +45,9 @@ class DocumentTypeAdmin(admin.ModelAdmin):
 
 
 @admin.register(ApplicationDocument)
-class ApplicationDocumentAdmin(admin.ModelAdmin):
+class ApplicationDocumentAdmin(ImportExportModelAdmin):
+    resource_class = ApplicationDocumentResource
+
     list_display = (
         "application",
         "document_type",
@@ -46,7 +67,9 @@ class ApplicationDocumentAdmin(admin.ModelAdmin):
 
 
 @admin.register(PosteDocumentRequirement)
-class PosteDocumentRequirementAdmin(admin.ModelAdmin):
+class PosteDocumentRequirementAdmin(ImportExportModelAdmin):
+    resource_class = PosteDocumentRequirementResource
+
     list_display = (
         "poste",
         "document_type",

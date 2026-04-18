@@ -1,40 +1,88 @@
 # root/views.py
 from django.shortcuts import render, get_object_or_404
 from django.utils import timezone
-
+from django.core.paginator import Paginator
 from .models import LegalReferenceType, Poste, LegalReference
-
+import random
 
 def home(request):
     selected_type = request.GET.get("type")
 
-    postes = Poste.objects.filter(is_open=True)
+    today = timezone.localdate()
+
+    postes_qs = Poste.objects.filter(
+        is_open=True,
+        deadline__gte=today
+    )
 
     if selected_type:
-        postes = postes.filter(poste_type=selected_type)
+        postes_qs = postes_qs.filter(poste_type=selected_type)
 
-    today = timezone.localdate()
-    postes = postes.filter(deadline__gte=today).order_by("deadline", "-publish_date")
+    postes_qs = postes_qs.order_by("deadline", "-publish_date")
+
+    postes_list = list(postes_qs)
+
+    # random sample (max 6)
+    postes = random.sample(
+        postes_list,
+        k=min(len(postes_list), 6)
+    )
 
     context = {
-        "postes": postes[:6],
+        "postes": postes,
+        "selected_type": selected_type,
     }
+
     return render(request, "public/home.html", context)
 
 
 def poste_list(request):
     selected_type = request.GET.get("type")
+    selected_direction = request.GET.get("direction")
 
-    postes = Poste.objects.all()
+    today = timezone.localdate()
 
+    postes_qs = Poste.objects.filter(
+        is_open=True,
+        deadline__gte=today
+    )
+
+    # filter by type
     if selected_type:
-        postes = postes.filter(poste_type=selected_type)
+        postes_qs = postes_qs.filter(poste_type=selected_type)
 
-    postes = postes.order_by("-is_open", "deadline", "-publish_date", "title")
+    # filter by direction
+    if selected_direction:
+        postes_qs = postes_qs.filter(direction=selected_direction)
+
+    postes_qs = postes_qs.order_by("deadline", "-publish_date")
+
+    # extract available directions (only those with open postes)
+    directions = (
+        Poste.objects.filter(
+            is_open=True,
+            deadline__gte=today
+        )
+        .exclude(direction__isnull=True)
+        .exclude(direction__exact="")
+        .values_list("direction", flat=True)
+        .distinct()
+        .order_by("direction")
+    )
+
+    # pagination
+    paginator = Paginator(postes_qs, 6)
+    page_number = request.GET.get("page")
+    page_obj = paginator.get_page(page_number)
 
     context = {
-        "postes": postes,
+        "postes": page_obj.object_list,
+        "page_obj": page_obj,
+        "directions": directions,
+        "selected_type": selected_type,
+        "selected_direction": selected_direction,
     }
+
     return render(request, "public/poste_list.html", context)
 
 

@@ -8,7 +8,8 @@ urlpatterns = [
     path("start/<slug:slug>/", views.start_application, name="start_application_with_slug"),
 
     path("candidate-information/", views.candidate_information, name="candidate_information"),
-
+    path("motivation/", views.motivation_step, name="motivation_step"),
+    
     path("upload-documents/", views.upload_documents, name="upload_documents"),
     path("upload-document-ajax/", views.upload_single_document, name="upload_single_document"),
 

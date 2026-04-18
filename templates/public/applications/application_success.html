@@ -12,138 +12,174 @@
         <div class="row justify-content-center">
             <div class="col-lg-8">
 
+                <!-- SUCCESS -->
                 <div class="custom-card mb-4">
-                    <div class="card-body text-center py-4 py-lg-5">
-                        <div class="mb-3">
-                            <span class="badge-soft-success px-3 py-2">
-                                <i class="bi bi-check-circle ms-1"></i>
-                                تم الإرسال بنجاح
-                            </span>
-                        </div>
+                    <div class="card-body text-center py-5">
+                        <span class="badge-soft-success px-3 py-2 mb-3">
+                            <i class="bi bi-check-circle ms-1"></i>
+                            تم الإرسال بنجاح
+                        </span>
 
                         <h2 class="fw-bold mb-3">تم تسجيل طلبكم بنجاح</h2>
 
-                        <p class="text-muted mx-auto mb-0 success-intro-text">
-                            تم استلام طلبكم داخل المنصة بنجاح. يرجى الاحتفاظ ببيانات التتبع بعناية،
-                            ويمكنكم أيضًا تحميل وصل التسجيل بصيغة PDF أو الانتقال مباشرة إلى صفحة تتبع الطلب.
+                        <p class="text-muted mx-auto mb-0" style="max-width: 650px; line-height: 2;">
+                            تم استلام طلبكم داخل المنصة بنجاح. يرجى الاحتفاظ برمز التتبع،
+                            ويمكنكم استخدامه لاحقًا لمتابعة حالة الطلب.
                         </p>
                     </div>
                 </div>
 
+                <!-- APPLICATION INFO -->
                 <div class="custom-card mb-4">
                     <div class="card-body p-4">
-                        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+
+                        <div class="d-flex justify-content-between align-items-center mb-3">
                             <h3 class="section-title mb-0">بيانات الطلب</h3>
-                            <span class="badge-soft-primary">معلومات مهمة للمتابعة</span>
+                            <span class="badge-soft-primary">معلومات مهمة</span>
                         </div>
 
                         <div class="row g-3">
+
+                            <!-- Application Number -->
                             <div class="col-md-6">
-                                <div class="soft-box h-100 info-box">
+                                <div class="soft-box h-100">
                                     <div class="text-muted small mb-1">رقم الطلب</div>
                                     <div class="fw-bold fs-5">{{ application_number }}</div>
                                 </div>
                             </div>
 
-                            <div class="col-md-6">
-                                <div class="soft-box h-100 text-center info-box tracking-box-wrapper">
+                            <!-- Tracking Code -->
+                            <div class="col-md-6 text-center">
+                                <div class="soft-box h-100">
+
                                     <div class="text-muted small mb-2">رمز التتبع</div>
 
-                                    <div class="tracking-code-box" dir="ltr" id="trackingCode">
+                                    <div class="tracking-code-box" id="trackingCode" dir="ltr">
                                         {{ tracking_code }}
                                     </div>
 
-                                    <div class="mt-3">
-                                        <button type="button"
-                                                class="btn btn-sm btn-outline-secondary-custom"
-                                                id="copyTrackingBtn"
-                                                onclick="copyTrackingCode(this)">
-                                            <i class="bi bi-clipboard ms-1"></i>
-                                            نسخ الرمز
-                                        </button>
-                                    </div>
+                                    <button type="button"
+                                            class="btn btn-sm btn-outline-custom mt-2"
+                                            onclick="copyTrackingCode(this)">
+                                        <i class="bi bi-clipboard ms-1"></i>
+                                        نسخ الرمز
+                                    </button>
+
                                 </div>
                             </div>
 
-                            {% if selected_poste %}
-                                <div class="col-12">
-                                    <div class="soft-box info-box">
-                                        <div class="text-muted small mb-1">المنصب المختار</div>
-                                        <div class="fw-semibold mb-1">{{ selected_poste.title|default:selected_poste }}</div>
-
-                                        {% if selected_poste.direction %}
-                                            <div class="text-muted small mt-1">
-                                                <i class="bi bi-building ms-1"></i>
-                                                {{ selected_poste.direction }}
-                                            </div>
-                                        {% endif %}
-
-                                        {% if selected_poste.sub_direction %}
-                                            <div class="text-muted small mt-1">
-                                                <i class="bi bi-diagram-3 ms-1"></i>
-                                                {{ selected_poste.sub_direction }}
-                                            </div>
-                                        {% endif %}
-                                    </div>
-                                </div>
-                            {% endif %}
                         </div>
 
-                        <div class="alert alert-warning mt-4 mb-0 text-center tracking-alert">
-                            <i class="bi bi-exclamation-triangle ms-1"></i>
-                            يرجى الاحتفاظ برقم الطلب ورمز التتبع، فهما الوسيلة الأساسية لمتابعة حالة الطلب لاحقًا.
+                        <div class="alert alert-warning rounded-4 mt-4 d-flex align-items-center gap-2">
+                            <i class="bi bi-exclamation-triangle-fill"></i>
+                            <span>يرجى الاحتفاظ برمز التتبع لمتابعة حالة الطلب لاحقًا.</span>
                         </div>
+
                     </div>
                 </div>
 
+                <!-- POSTES -->
                 <div class="custom-card mb-4">
-                    <div class="card-body p-4 text-center">
-                        <h3 class="section-title">رمز التتبع السريع</h3>
+                    <div class="card-body p-4">
 
-                        {% if qr_code_base64 %}
-                            <div class="qr-box mb-3">
-                                <img
-                                    src="data:image/png;base64,{{ qr_code_base64 }}"
-                                    alt="QR Tracking"
-                                    class="qr-image"
-                                >
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h3 class="section-title mb-0">المناصب المختارة</h3>
+                            <span class="badge-soft-info">حسب الأولوية</span>
+                        </div>
+
+                        <!-- Primary Poste -->
+                        {% if primary_poste %}
+                            <div class="primary-poste mb-3 p-3 rounded-4">
+                                <div class="text-muted small mb-1">المنصب الأساسي</div>
+                                <div class="fw-bold fs-5">{{ primary_poste.title }}</div>
+                                {% if primary_poste.direction %}
+                                    <div class="text-muted small mt-1">{{ primary_poste.direction }}</div>
+                                {% endif %}
                             </div>
                         {% endif %}
 
-                        <p class="text-muted mb-3 qr-help-text">
-                            يمكنكم مسح رمز QR للوصول المباشر إلى صفحة تتبع الطلب دون الحاجة إلى إدخال الرمز يدويًا.
-                        </p>
+                        <!-- Other Choices -->
+                        <div class="d-flex flex-column gap-2">
+                            {% for choice in choices %}
+                                {% if choice.priority != 1 %}
+                                    <div class="poste-card">
+                                        {{ choice.poste.title }}
+                                        <span class="text-muted small">
+                                            (الأولوية {{ choice.priority }})
+                                        </span>
+                                    </div>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
 
-                        <a href="{{ tracking_url }}" class="btn btn-outline-custom">
-                            <i class="bi bi-qr-code-scan ms-1"></i>
-                            فتح رابط التتبع
-                        </a>
+                        <div class="alert alert-light border mt-3 mb-0 small text-center">
+                            سيتم تقييم طلبكم وفق ترتيب الأولوية أعلاه.
+                        </div>
+
                     </div>
                 </div>
 
-                <div class="custom-card">
+                <!-- QR TRACKING -->
+                <div class="custom-card mb-4">
                     <div class="card-body p-4">
-                        <div class="d-flex flex-wrap gap-3 justify-content-center justify-content-lg-start">
+
+                        <div class="row align-items-center g-4">
+
+                            <!-- QR -->
+                            <div class="col-md-5 text-center">
+                                {% if qr_code_base64 %}
+                                    <div class="qr-box">
+                                        <img src="data:image/png;base64,{{ qr_code_base64 }}" class="qr-image">
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <!-- TEXT + CTA -->
+                            <div class="col-md-7">
+
+                                <h3 class="section-title mb-2">تتبع الطلب</h3>
+
+                                <p class="text-muted mb-3" style="line-height: 1.9;">
+                                    يمكنك تتبع حالة طلبك في أي وقت باستخدام رمز التتبع
+                                    أو عبر الرابط المباشر دون الحاجة لإدخاله يدويًا.
+                                </p>
+
+                                <a href="{{ tracking_url }}" class="btn btn-primary-custom">
+                                    <i class="bi bi-search ms-1"></i>
+                                    تتبع الطلب الآن
+                                </a>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- ACTIONS -->
+                <div class="custom-card text-center">
+                    <div class="card-body p-4">
+
+                        <h3 class="section-title mb-3">خيارات إضافية</h3>
+
+                        <div class="d-flex gap-2 justify-content-center flex-wrap">
+
                             <a href="{% url 'applications:download_receipt_pdf' tracking_code=application.tracking_code %}"
-                               class="btn btn-outline-custom">
-                                <i class="bi bi-download ms-1"></i>
-                                تحميل وصل التسجيل
+                            class="btn btn-outline-custom">
+                                تحميل الوصل
                             </a>
 
-                            <a href="{{ tracking_url }}" class="btn btn-outline-custom">
-                                <i class="bi bi-search ms-1"></i>
-                                تتبع الطلب
-                            </a>
-
-                            <a href="{% url 'root:home' %}" class="btn btn-outline-secondary-custom">
-                                <i class="bi bi-house-door ms-1"></i>
+                            <a href="{% url 'root:home' %}"
+                            class="btn btn-outline-secondary-custom">
                                 العودة إلى الرئيسية
                             </a>
+
                         </div>
 
-                        <div class="submit-helper-text mt-3 text-center text-lg-start">
-                            يمكنكم العودة لاحقًا إلى صفحة التتبع باستعمال رمز التتبع أو رقم الطلب حسب المسار المعتمد.
+                        <div class="mt-3 text-muted small">
+                            يمكنكم العودة لاحقًا باستخدام رمز التتبع أو رقم الطلب.
                         </div>
+
                     </div>
                 </div>
 
@@ -152,129 +188,68 @@
     </div>
 </section>
 
+<!-- JS -->
 <script>
 function copyTrackingCode(button) {
     const code = document.getElementById("trackingCode").innerText.trim();
-    const originalHtml = button.innerHTML;
+    const original = button.innerHTML;
 
     navigator.clipboard.writeText(code).then(function () {
         button.innerHTML = '<i class="bi bi-check2 ms-1"></i>تم النسخ';
         button.classList.add("copied-state");
 
         setTimeout(function () {
-            button.innerHTML = originalHtml;
+            button.innerHTML = original;
             button.classList.remove("copied-state");
-        }, 1600);
-    }).catch(function () {
-        alert("تعذر نسخ الرمز، يرجى نسخه يدويًا.");
+        }, 1500);
     });
 }
 </script>
+
 {% endblock %}
 
 {% block extra_css %}
 <style>
-.success-intro-text {
-    max-width: 680px;
-    line-height: 2;
-}
-
-.soft-box.info-box {
-    border: 1px solid #e9ecef;
-    border-radius: 16px;
-    background: #fcfdfd;
-    padding: 1rem;
-}
-
-.tracking-box-wrapper {
-    background: #fbfcfd;
-}
-
-.tracking-code-box {
-    font-size: 1.35rem;
+.tracking-code-box{
+    font-size: 1.4rem;
     font-weight: 800;
     letter-spacing: 3px;
     background: #f8f9fa;
-    padding: 12px 18px;
+    padding: 14px 20px;
     border-radius: 14px;
+    border: 2px dashed #cbd5e1;
     display: inline-block;
-    border: 1px dashed #ced4da;
-    color: #1f2937;
     min-width: 220px;
 }
 
-.tracking-alert {
-    line-height: 1.95;
-    font-weight: 500;
-    border-radius: 16px;
+.primary-poste{
+    background:#f3f8f7;
+    border:1px solid #dceeea;
 }
 
-.qr-box {
-    display: inline-flex;
-    justify-content: center;
-    align-items: center;
-    padding: 12px;
-    border-radius: 18px;
-    background: #fcfdfd;
-    border: 1px solid #e9ecef;
+.poste-card{
+    padding:10px 14px;
+    border:1px solid #e5e7eb;
+    border-radius:10px;
+    background:#fff;
 }
 
-.qr-image {
-    max-width: 180px;
-    height: auto;
-    display: block;
+.qr-box{
+    display:inline-flex;
+    justify-content:center;
+    padding:12px;
+    border-radius:16px;
+    background:#fcfdfd;
+    border:1px solid #e9ecef;
 }
 
-.qr-help-text {
-    line-height: 1.9;
-    max-width: 580px;
-    margin-inline: auto;
+.qr-image{
+    max-width:180px;
 }
 
-.btn-outline-secondary-custom {
-    border: 1px solid #ced4da;
-    color: #495057;
-    background: #fff;
-    border-radius: 14px;
-    padding-inline: 16px;
-    min-height: 44px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.btn-outline-secondary-custom:hover {
-    background: #f8f9fa;
-    color: #212529;
-    border-color: #adb5bd;
-}
-
-#copyTrackingBtn {
-    min-width: 120px;
-}
-
-#copyTrackingBtn.copied-state {
-    background: #198754;
-    color: #fff;
-    border-color: #198754;
-}
-
-.submit-helper-text {
-    font-size: 0.9rem;
-    color: #6c757d;
-    line-height: 1.9;
-}
-
-@media (max-width: 576px) {
-    .tracking-code-box {
-        min-width: 100%;
-        font-size: 1.15rem;
-        letter-spacing: 2px;
-    }
-
-    .qr-image {
-        max-width: 150px;
-    }
+#copyTrackingBtn.copied-state{
+    background:#198754;
+    color:#fff;
 }
 </style>
 {% endblock %}
