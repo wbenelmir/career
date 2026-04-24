@@ -5,7 +5,6 @@ from import_export.admin import ImportExportModelAdmin
 
 from .models import Wilaya, Commune
 
-
 class WilayaResource(resources.ModelResource):
     class Meta:
         model = Wilaya
@@ -13,7 +12,6 @@ class WilayaResource(resources.ModelResource):
         export_order = fields
         skip_unchanged = True
         report_skipped = True
-
 
 @admin.register(Wilaya)
 class WilayaAdmin(ImportExportModelAdmin):
@@ -31,7 +29,6 @@ class CommuneResource(resources.ModelResource):
         export_order = fields
         skip_unchanged = True
         report_skipped = True
-
 
 @admin.register(Commune)
 class CommuneAdmin(ImportExportModelAdmin):

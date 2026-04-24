@@ -3,13 +3,11 @@ import os
 import re
 from django.db import models
 
-
 def _slugify_for_filename(value):
     value = (value or "").strip().lower()
     value = re.sub(r"\s+", "_", value)
     value = re.sub(r"[^a-z0-9\u0600-\u06FF_-]", "", value)
     return value or "document"
-
 
 def application_document_upload_to(instance, filename):
     extension = os.path.splitext(filename)[1].lower()
@@ -28,7 +26,6 @@ def application_document_upload_to(instance, filename):
         final_name
     )
 
-
 class DocumentType(models.Model):
     name = models.CharField(max_length=255, unique=True)
     description = models.TextField(blank=True, null=True)
@@ -44,7 +41,6 @@ class DocumentType(models.Model):
 
     def __str__(self):
         return self.name
-
 
 class PosteDocumentRequirement(models.Model):
     poste = models.ForeignKey(
@@ -120,7 +116,6 @@ class PosteDocumentRequirement(models.Model):
             for ext in self.allowed_extensions.split(',')
             if ext.strip()
         ]
-
 
 class ApplicationDocument(models.Model):
     application = models.ForeignKey(

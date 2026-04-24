@@ -12,7 +12,6 @@ class Wilaya(models.Model):
     def __str__(self):
         return f"{self.code} - {self.name_ar}"
 
-
 class Commune(models.Model):
     code = models.CharField(max_length=10, blank=False, null=False)    
     wilaya = models.ForeignKey(Wilaya, on_delete=models.PROTECT, related_name="communes")

@@ -4,12 +4,11 @@ from django.dispatch import receiver
 from applications.models import Application
 from .services import NotificationService
 
-
 @receiver(pre_save, sender=Application)
 def store_previous_application_status(sender, instance, **kwargs):
+
     """
-    حفظ الحالة السابقة قبل التحديث،
-    حتى نتحقق لاحقًا هل تغيّرت فعلًا أم لا.
+    Store the previous status before saving.
     """
     instance._previous_status = None
 
@@ -23,29 +22,29 @@ def store_previous_application_status(sender, instance, **kwargs):
 
 @receiver(post_save, sender=Application)
 def send_application_notifications(sender, instance, created, **kwargs):
-    """
-    قواعد الإرسال:
-    1) عند الإنشاء:
-       - إذا كان الطلب أُنشئ مباشرة بحالة SUBMITTED نرسل:
-         - تأكيد للمترشح
-         - إشعار للإدارة
 
-    2) عند التحديث:
-       - إذا تغيّرت الحالة نرسل تحديث حالة
-       - وإذا أصبحت interview_scheduled نرسل أيضًا استدعاء المقابلة
+    """
+    Sending rules:
+    1) On creation: 
+        - If the application is created directly with SUBMITTED status, send:
+        - Confirmation to candidate
+        - Notification to admin
+    2) On update:
+        - If the status changed, send status update
+        - If the new status is interview_scheduled, also send interview scheduled notification
     """
 
     current_status = getattr(instance, "status", None)
     previous_status = getattr(instance, "_previous_status", None)
 
-    # عند الإنشاء
+    # in case of creation, we only care if the initial status is SUBMITTED
     if created:
         if current_status == Application.Status.SUBMITTED:
             NotificationService.send_application_submitted(instance)
             NotificationService.send_admin_new_application(instance)
         return
 
-    # عند التحديث: فقط إذا تغيّرت الحالة
+    # in case of update, we check if the status changed
     if previous_status != current_status:
 
         NotificationService.send_application_status_update(instance)

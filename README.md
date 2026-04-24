@@ -1,28 +1,25 @@
-# PROJECT: Django Application System – Recruitment Platform (UPDATED v7)
+# PROJECT: Django Application System – Recruitment Platform (UPDATED v8)
 
 ## OVERVIEW
 
 Arabic RTL recruitment platform for managing applications to:
 → jobs + senior positions
 
-Public terminology currently adopted in the platform:
+Public terminology:
 - وظائف عليا
 - مناصب عليا
 - رتب
 
-Internal poste_type values remain:
+Internal poste_type:
 - transfer
 - detachment
 - head_office
-
-The platform is NOT limited to "Head of Office".
-It supports a broader recruitment workflow for multiple categories of positions.
 
 System split:
 1. PUBLIC (candidate side)
 2. ADMIN (management side)
 
-No authentication for candidates.
+No authentication required for candidates.
 
 Tracking is handled via:
 - tracking_code
@@ -39,88 +36,218 @@ Notifications handled via:
 
 ## CURRENT STATE
 
-✔ End-to-end workflow fully functional
-✔ UX significantly improved across all main public pages
-✔ Upload system enhanced (auto + manual)
-✔ Review page aligned with workflow
-✔ Final submission secured
-✔ Success page improved
-✔ Tracking pages improved
-✔ PDF receipt implemented
-✔ Public pages unified visually
-✔ Email templates redesigned with stronger official branding
-✔ Notification logging introduced
-✔ Celery prepared/used for async email sending
-✔ Admin refined in several areas
-✔ django-import-export introduced
-✔ Legal references prepared for structured data management
+✔ End-to-end workflow fully functional  
+✔ Public UX unified across all steps  
+✔ Select2 integrated for poste selection  
+✔ Wilaya/Commune dynamic loading stabilized  
+✔ Upload system (auto + manual) improved  
+✔ Review page redesigned (clean + decision-oriented)  
+✔ Final submission secured with confirmation modal  
+✔ Success page enhanced (tracking + QR + PDF)  
+✔ Tracking pages improved (timeline + clarity)  
+✔ Email templates unified (official style)  
+✔ Notification logging implemented  
+✔ Admin partially refined  
+✔ django-import-export integrated  
+✔ Legal references DB-driven  
 
 Current phase:
-→ admin area refinement + data consistency + notification monitoring + production readiness
+→ admin refinement + data consistency + production hardening
 
 ---
 
 ## APPLICATION FLOW (FINAL)
 
-1. start_application
-2. candidate_information
-3. upload_documents
-4. review_application
-5. submit_application
-6. success
-7. tracking
+1. start_application  
+2. candidate_information  
+3. motivation_step  
+4. upload_documents  
+5. review_application  
+6. submit_application  
+7. success  
+8. tracking  
 
 ---
 
-## SESSION KEYS
+## SESSION LOGIC
+
+Session-driven flow:
 
 - selected_poste_id
+- selected_poste_ids (multi-choice)
 - candidate_id
 - draft_application_id
 
 Rules:
-- draft is session-driven
+- only one active draft per session
 - no return after submission
-- session is cleared after successful final submission
+- session cleared after final submit
 
 ---
 
-## POSTE MODEL
+## POSTE SELECTION
 
-Public routing uses:
-→ slug (NOT id)
-
-Internal types:
-- transfer
-- detachment
-- head_office
-
-Public labels:
-- transfer → وظائف عليا
-- detachment → مناصب عليا
-- head_office → رتب
-
-Only public/open postes should appear when:
-- is_open=True
-- deadline valid
-
-Poste pages improved:
-- home filters updated
-- poste_list filters updated
-- poste_detail aligned with new terminology
+✔ Multi-choice (1–3 ordered priorities)  
+✔ Select2 enabled (searchable dropdown)  
+✔ Duplicate selection prevented (JS + backend)  
+✔ Slug-based routing supported  
 
 ---
 
-## LEGAL REFERENCE MODEL
+## CANDIDATE PROFILE
 
-Legal references are now part of the active data strategy.
+Validated fields:
+- personal identity (NIN 18 digits, unique)
+- contact information
+- address (wilaya → commune)
+- professional data
+
+Enhancements:
+- Arabic-only validation (front + backend)
+- placeholders and helper texts
+- numeric input sanitization
+- date constraints
+
+---
+
+## MOTIVATION STEP
+
+✔ Mandatory before proceeding  
+✔ Word count validation (100–500)  
+✔ Real-time feedback + progress bar  
+✔ Prevent submission if invalid  
+✔ Stored in draft application  
+
+---
+
+## DOCUMENT UPLOAD
+
+✔ Requirement-based upload system  
+✔ Supports:
+- auto upload
+- manual upload
+- replacement
+
+✔ Real-time validation:
+- file size
+- format
+- requirement constraints
+
+✔ Missing documents detection before review
+
+---
+
+## REVIEW PAGE (CRITICAL)
+
+Final decision screen before submission.
+
+Displays:
+- ordered postes (priorities)
+- motivation (scroll-safe container)
+- candidate summary (compact grid)
+- documents status (complete / missing)
+
+Enhancements:
+- clean layout (reduced vertical length)
+- official UI alignment
+- sidebar with final instructions
+- progress visualization
+
+---
+
+## FINAL SUBMISSION
+
+✔ Allowed only if:
+- status = DRAFT
+- all required documents uploaded
+
+✔ Confirmation modal required before submit
+
+✔ Submit flow:
+- user clicks "الإرسال النهائي"
+- modal appears
+- user confirms
+- POST request sent
+
+✔ Protections:
+- no nested forms
+- single submission endpoint
+- double submit prevention
+
+---
+
+## SUBMISSION RESULT
+
+On submit:
+
+- status → SUBMITTED
+- application_number generated
+- tracking_code generated
+- tracking entry created
+- session cleared
+
+Notifications:
+- candidate confirmation email
+- admin notification email
+
+---
+
+## SUCCESS PAGE
+
+Displays:
+- application number
+- tracking code
+- primary poste
+- QR code
+- PDF receipt
+- direct tracking link
+
+UX:
+- clear next steps
+- copy tracking code
+- official tone
+
+---
+
+## TRACKING SYSTEM
+
+No authentication required.
+
+User can:
+- view status
+- see timeline
+- see rejection reason (if allowed)
+
+UX improvements:
+- structured timeline
+- clear status labels
+- strong readability
+
+---
+
+## ADMIN SIDE
 
 Current direction:
-- legal references managed from DB
-- import/export supported
-- intended public page is dynamic
+→ evaluation-ready system
 
-Recommended / current fields:
+Implemented:
+- improved PosteAdmin
+- LegalReferenceAdmin
+- NotificationLogAdmin
+- import/export workflows
+
+Next:
+- application evaluation UI
+- scoring system (planned)
+- filtering + monitoring tools
+
+---
+
+## LEGAL REFERENCES
+
+Managed from DB.
+
+Fields:
 - title
 - reference_number
 - reference_type
@@ -130,270 +257,63 @@ Recommended / current fields:
 - is_active
 - display_order
 
-reference_type is used for:
-- classification
-- admin filtering
-- public filtering in legal_text page
-
-Current legal reference page direction:
-- only active references displayed
-- sorted by display_order then date
-- filter buttons generated from available active reference types
-- no empty categories should be shown to users
-
----
-
-## CANDIDATE PROFILE
-
-Key fields:
-- first_name / last_name
-- gender
-- date_of_birth / place_of_birth
-- national_id_number (18 digits, unique)
-- email / phone_number
-- address / wilaya / commune
-- current_administration
-- current_position_grade
-- current_function
-- tenure_decision_date
-- years_of_seniority
-- years_of_effective_service
-
-Removed logic:
-- is_tenured_employee (deprecated)
-
 Rules:
-- tenure_decision_date required
-- not in future
-- commune must belong to selected wilaya
-- eligibility logic tied to current grade/service rules
+- only active references shown
+- no empty categories
+- sorted properly
 
 ---
 
-## FORMS
+## NOTIFICATION SYSTEM
 
-### ApplicationForm
-- selects poste only
-- filtered by open + deadline
+- NotificationService (central logic)
+- NotificationLog (tracking)
+- Celery async sending
 
-### CandidateProfileForm
-- full validation implemented
-- improved UX:
-  - placeholders
-  - helper text
-  - JS wilaya/commune logic
+Templates:
+- application_submitted
+- status_update
+- interview_scheduled
+- admin_new_application
 
-### Start Step Additions
-- declaration_confirmation (required)
-- captcha (django-simple-captcha)
-
----
-
-## START APPLICATION UX
-
-Includes:
-- poste selection
-- legal declaration (mandatory)
-- data protection consent (Law 18-07)
-- captcha verification
-
-UX improvements:
-- clear CTA
-- improved checkbox visibility
-- improved captcha readability
-- no duplicate titles
-- poste terminology aligned with updated public labels
-
----
-
-## DOCUMENT UPLOAD
-
-- auto upload supported
-- manual upload button supported
-- file replacement enabled
-- status updates in real-time
-- file naming normalized
-- validation:
-  - size
-  - format
-  - requirement-based constraints
-
----
-
-## REVIEW PAGE
-
-Display only:
-- candidate summary
-- documents summary
-- completeness state
-
-Submission happens ONLY via:
-→ submit_application
-
----
-
-## SUBMISSION RULES
-
-Allowed only if:
-- status = DRAFT
-- required documents complete
-
-Then:
-- status → SUBMITTED
-- generate application_number
-- generate tracking_code
-- create tracking entry
-- clear session
-- send async notifications
-
-Important:
-- submitted email should be sent separately from generic status update
-- generic status update should not be duplicated at submit time
-
----
-
-## SUCCESS PAGE
-
-Shows:
-- application number
-- tracking code
-- poste
-- QR code
-- PDF receipt
-- direct tracking link
-
-UX improvements:
-- clearer preservation of tracking data
-- copy tracking code support
-- better CTA hierarchy
-- stronger post-submission guidance
-
----
-
-## TRACKING
-
-No login required
-
-User sees:
-- current status
-- visible timeline only
-- rejection reason when allowed / applicable
-
-Tracking UX improvements:
-- stronger status presentation
-- timeline clarified
-- direct access from success page
-- better candidate-facing messaging
-
----
-
-## EMAIL / NOTIFICATIONS
-
-Notification architecture now matters as a first-class system area.
-
-Current structure:
-- NotificationService handles email building/sending
-- NotificationLog stores delivery attempts and results
-- Celery used/prepared for async dispatch
-- management command used for template testing without repeating the application flow
-
-Current email templates:
-- application_submitted.html
-- application_status_update.html
-- interview_scheduled.html
-- admin_new_application.html
-
-Current template direction:
+Design:
 - Arabic RTL
-- stronger ministry branding
-- unified visual identity
-- email_base.html introduced for shared structure
-- public-facing templates are official, minimal, and ministry-aligned
-
-Operational rules:
-- candidate submission email sent after final submit
-- admin new application email sent after final submit
-- later lifecycle statuses may trigger status update emails
-- interview scheduling has a dedicated email
-- NotificationLog should remain tied to the related application when possible
+- official branding
+- unified layout
 
 ---
 
-## PUBLIC PAGES
+## UI PRINCIPLES
 
-Improved and visually unified:
-- home
-- poste_list
-- poste_detail
-- about_ministry
-- legal_text
-- success
-- tracking form
-- tracking result
-
-Design principles:
 - clean
-- official
-- Arabic RTL
 - minimal
-- consistent
-- no unnecessary redesign
+- official (ministry-style)
+- Arabic RTL
+- consistent across pages
+
+No unnecessary redesign allowed.
 
 ---
 
-## ADMIN SIDE
+## CRITICAL RULES
 
-Admin direction is now stronger and more data-oriented.
-
-Current/admin improvements:
-- Arabic-first wording in admin actions and labels where appropriate
-- better PosteAdmin display
-- improved LegalReferenceAdmin
-- NotificationLog model/admin introduced and refined
-- import/export support introduced
-- structured handling for legal references
-- legal visibility and ordering prepared
-- legal reference import through Excel now part of workflow
-
-django-import-export used/planned for:
-- locations
-- notifications
-- legal references
-- postes
-
-Next main focus:
-→ admin area refinement
-
-Likely admin priorities next:
-- usability of admin dashboards/forms
-- NotificationLog visibility / filtering
-- resend / monitoring options later if needed
-- stronger legal/poste data management
-- production-friendly data administration
-
----
-
-## IMPORTANT RULES
-
-- No return after submission
-- incomplete = missing OR invalid
-- rejection requires reason
-- candidate sees only visible notes
-- public legal page should not depend on hardcoded legal text anymore
-- legal references should be controlled from DB
-- only categories containing active legal references should be shown publicly
-- email templates should remain unified and official
-- avoid duplicate notification side effects
+- no multiple active applications (NIN rule)
+- motivation required before upload
+- review is display-only
+- submission only via submit_application
+- no return after submission
+- no duplicate notifications
 
 ---
 
 ## CURRENT FOCUS
 
 - admin refinement
-- legal reference data quality
-- notification monitoring consistency
-- import/export workflow
-- consistency across public/admin
+- data consistency
+- notification monitoring
 - production readiness
+- evaluation system preparation
 
-END v7
+---
+
+END v8

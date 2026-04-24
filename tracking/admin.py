@@ -3,7 +3,6 @@ from django.contrib import admin
 
 from .models import ApplicationTracking, InterviewSchedule
 
-
 @admin.register(ApplicationTracking)
 class ApplicationTrackingAdmin(admin.ModelAdmin):
     list_display = (

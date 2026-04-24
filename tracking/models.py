@@ -6,7 +6,6 @@ from django.utils import timezone
 
 from applications.models import Application
 
-
 class ApplicationTracking(models.Model):
     application = models.ForeignKey(
         Application,

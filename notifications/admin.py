@@ -4,7 +4,6 @@ from import_export.admin import ImportExportModelAdmin
 
 from .models import NotificationLog
 
-
 class NotificationLogResource(resources.ModelResource):
     class Meta:
         model = NotificationLog

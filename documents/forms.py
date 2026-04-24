@@ -2,7 +2,6 @@
 from django import forms
 from .models import ApplicationDocument, DocumentType
 
-
 class ApplicationDocumentForm(forms.ModelForm):
     class Meta:
         model = ApplicationDocument

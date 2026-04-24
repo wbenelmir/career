@@ -1,7 +1,6 @@
 from django.db import models
 from django.utils.text import slugify
 
-
 class LegalReferenceType(models.TextChoices):
     GENERAL = "general", "نصوص عامة"
     RECRUITMENT = "recruitment", "الترشح والتوظيف"

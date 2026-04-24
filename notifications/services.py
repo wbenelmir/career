@@ -6,7 +6,6 @@ from django.utils.html import strip_tags
 from applications.utils import generate_qr_base64
 from .models import NotificationLog
 
-
 class NotificationService:
     @staticmethod
     def send_email(

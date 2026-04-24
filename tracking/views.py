@@ -4,7 +4,6 @@ from django.shortcuts import get_object_or_404, redirect, render
 from applications.models import Application
 from .forms import TrackingForm
 
-
 def track_application(request):
     if request.method == 'POST':
         form = TrackingForm(request.POST)

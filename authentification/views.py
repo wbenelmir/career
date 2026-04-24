@@ -3,7 +3,6 @@ from django.shortcuts import redirect, render
 
 from .forms import AdminLoginForm
 
-
 def admin_login_view(request):
     if request.user.is_authenticated and request.user.is_staff:
         return redirect('dashboard:dashboard_home')

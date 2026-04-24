@@ -17,10 +17,8 @@ from .forms import (
     InterviewScheduleForm,
 )
 
-
 def is_admin_user(user):
     return user.is_authenticated and user.is_staff
-
 
 @user_passes_test(is_admin_user)
 def dashboard_home(request):
@@ -61,7 +59,6 @@ def dashboard_home(request):
         ).count(),
     }
     return render(request, 'adminpanel/dashboard.html', context)
-
 
 @user_passes_test(is_admin_user)
 def applications_list(request):

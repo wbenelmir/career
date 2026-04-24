@@ -5,7 +5,6 @@ from import_export.admin import ImportExportModelAdmin
 
 from .models import Poste, LegalReference
 
-
 class LegalReferenceResource(resources.ModelResource):
     class Meta:
         model = LegalReference

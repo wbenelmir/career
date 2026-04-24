@@ -6,8 +6,7 @@ def role_required(*allowed_roles):
     """
     allowed_roles examples:
     - "SUPER_ADMIN"
-    - "ADMIN_OPGI"
-    - "USER_OPGI"
+    - ....
     """
     def decorator(view_func):
         @wraps(view_func)

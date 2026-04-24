@@ -1,6 +1,5 @@
 from django import forms
 
-
 class TrackingForm(forms.Form):
     tracking_code = forms.CharField(
         label="رمز التتبع",

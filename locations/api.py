@@ -11,14 +11,6 @@ def communes_by_wilaya(request):
     if not wilaya_id:
         return JsonResponse({"results": []})
 
-    # Security scope
-    # if not is_opgi_admin(request.user):
-    #     if not is_opgi(request.user):
-    #         return JsonResponse({"results": []})
-    #     profile = getattr(request.user, "profile", None)
-    #     if not profile or str(profile.wilaya_id) != str(wilaya_id):
-    #         return JsonResponse({"results": []})
-
     qs = Commune.objects.filter(wilaya_id=wilaya_id)
 
     if term:

@@ -1,6 +1,5 @@
 from celery import shared_task
 
-
 @shared_task(
     autoretry_for=(Exception,),
     retry_backoff=True,

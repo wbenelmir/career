@@ -5,7 +5,6 @@ from import_export.admin import ImportExportModelAdmin
 
 from .models import DocumentType, ApplicationDocument, PosteDocumentRequirement
 
-
 class DocumentTypeResource(resources.ModelResource):
     class Meta:
         model = DocumentType

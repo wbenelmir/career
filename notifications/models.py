@@ -1,6 +1,5 @@
 from django.db import models
 
-
 class NotificationLog(models.Model):
     class Status(models.TextChoices):
         SENT = "SENT", "تم الإرسال"
