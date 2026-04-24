@@ -1,23 +1,23 @@
 {% extends "base/public_base.html" %}
 
-{% block title %}رفع الوثائق | منصة الترشح{% endblock %}
+{% block title %}تحميل الوثائق | منصة الترشح{% endblock %}
 
 {% block page_header %}
-    {% include "includes/public/page_header.html" with page_title="رفع الوثائق" page_subtitle="الخطوة الثالثة: إرفاق الوثائق المطلوبة لإتمام ملف الترشح." %}
+    {% include "includes/public/page_header.html" with page_title="تحميل الوثائق" page_subtitle="الخطوة الثالثة: إرفاق الوثائق المطلوبة لإتمام ملف الترشح." %}
 {% endblock %}
 
 {% block content %}
 <section class="section-padding pt-0">
     <div class="container">
 
-        {% include "includes/applications/stepper.html" with current_step=3 %}
+        {% include "includes/applications/stepper.html" with current_step=4 %}
 
         <div class="row g-4 mt-1">
 
             <div class="col-lg-8">
 
                 {% if selected_poste %}
-                    <div class="custom-card mb-4 shadow-sm border-0">
+                    <div class="custom-card mb-4">
                         <div class="card-body p-4">
                             <div class="d-flex align-items-start justify-content-between gap-3 flex-wrap">
                                 <div>
@@ -32,7 +32,6 @@
                                         </p>
                                     {% endif %}
                                 </div>
-                                <span class="badge-soft-primary px-3 py-2">الخطوة 3 من 5</span>
                             </div>
                         </div>
                     </div>
@@ -42,9 +41,9 @@
                     <div class="card-body p-4 p-md-5">
                         <div class="d-flex align-items-start justify-content-between gap-3 flex-wrap mb-2">
                             <div>
-                                <h2 class="section-title mb-2">إرفاق الوثائق</h2>
-                                <p class="section-subtitle mb-0">
-                                    يمكنك اختيار كل ملف ثم رفعه مباشرة. بعد استكمال جميع الوثائق المطلوبة، يمكنك الانتقال إلى خطوة المراجعة.
+                               <h2 class="section-title">تحميل الوثائق</h2>
+                                <p class="section-subtitle">
+                                    قم برفع جميع الوثائق المطلوبة لإكمال ملف الترشح قبل الانتقال إلى مرحلة المراجعة.
                                 </p>
                             </div>
 
@@ -238,7 +237,7 @@
                             {% if uploaded_documents %}
                                 <div class="mt-5">
                                     <div class="d-flex align-items-center justify-content-between gap-3 flex-wrap mb-3">
-                                        <h3 class="section-title mb-0">حالة الوثائق</h3>
+                                        <h3 class="section-title">حالة الوثائق المرفوعة</h3>
                                         {% if missing_documents %}
                                             <span class="badge-soft-warning">الملف غير مكتمل</span>
                                         {% else %}
@@ -324,7 +323,7 @@
                             {% endif %}
 
                             <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mt-4 pt-3 border-top">
-                                <a href="{% url 'applications:candidate_information' %}" class="btn btn-outline-custom btn-lg px-4">
+                                <a href="{% url 'applications:motivation_step' %}" class="btn btn-outline-custom btn-lg px-4">
                                     <i class="bi bi-arrow-right-circle ms-1"></i>
                                     الرجوع إلى معلومات المترشح
                                 </a>
@@ -354,7 +353,7 @@
 
                     <div class="custom-card shadow-sm border-0">
                         <div class="card-body">
-                            <h3 class="section-title">إرشادات مهمة</h3>
+                            <h3 class="section-title">إرشادات</h3>
                             <ul class="rtl-list text-muted mb-0">
                                 <li>بعد اختيار الملف، يتم رفعه تلقائيًا إلى النظام.</li>
                                 <li>يمكنك أيضًا الضغط على زر <strong>رفع الملف</strong> يدويًا.</li>
@@ -379,7 +378,7 @@
                                 </div>
                                 <div class="d-flex align-items-center gap-3">
                                     <span class="badge-soft-primary">3</span>
-                                    <span class="text-muted fw-semibold">رفع الوثائق</span>
+                                    <span class="text-muted fw-semibold">تحميل الوثائق</span>
                                 </div>
                                 <div class="d-flex align-items-center gap-3">
                                     <span class="badge-soft-info">4</span>
@@ -388,26 +387,6 @@
                                 <div class="d-flex align-items-center gap-3">
                                     <span class="badge-soft-info">5</span>
                                     <span class="text-muted">الإرسال النهائي</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="custom-card shadow-sm border-0">
-                        <div class="card-body">
-                            <h3 class="section-title">ملخص الحالة</h3>
-                            <div class="d-flex flex-column gap-2 text-muted">
-                                <div class="d-flex justify-content-between">
-                                    <span>إجمالي الوثائق</span>
-                                    <strong>{{ uploaded_documents|length }}</strong>
-                                </div>
-                                <div class="d-flex justify-content-between">
-                                    <span>غير المستكملة</span>
-                                    <strong id="missingCountValue">{{ missing_documents|length }}</strong>
-                                </div>
-                                <div class="d-flex justify-content-between">
-                                    <span>المرحلة الحالية</span>
-                                    <strong>رفع الوثائق</strong>
                                 </div>
                             </div>
                         </div>
@@ -597,6 +576,17 @@
     color: #0d6efd;
 }
 
+.upload-doc-card {
+    border-radius: 16px;
+}
+
+.upload-doc-card .form-label {
+    font-size: 0.95rem;
+}
+
+.section-subtitle {
+    max-width: 650px;
+}
 @keyframes fadeSlideIn {
     from {
         opacity: 0;

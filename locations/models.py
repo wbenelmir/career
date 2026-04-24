@@ -10,7 +10,7 @@ class Wilaya(models.Model):
         ordering = ["code"]
 
     def __str__(self):
-        return f"{self.code} - {self.name_fr}"
+        return f"{self.code} - {self.name_ar}"
 
 
 class Commune(models.Model):
@@ -20,8 +20,8 @@ class Commune(models.Model):
     name_ar = models.CharField(max_length=120, blank=True, null=True)  # optional
     
     class Meta:
-        ordering = ["wilaya__code", "name_fr"]
-        unique_together = ("wilaya", "name_fr")
+        ordering = ["wilaya__code", "name_ar"]
+        unique_together = ("wilaya", "name_ar")
 
     def __str__(self):
-        return f"{self.wilaya.code} - {self.name_fr}"
+        return f"{self.wilaya.code} - {self.name_ar}"

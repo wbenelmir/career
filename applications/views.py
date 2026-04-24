@@ -8,7 +8,8 @@ from django.db.models import Q
 from django.contrib import messages
 from django.http import HttpResponse, JsonResponse
 from django.core.exceptions import ValidationError
-from django.db import IntegrityError
+from django.db import IntegrityError, transaction
+
 from django.urls import reverse
 from django.views.decorators.http import require_http_methods, require_POST
 from django.shortcuts import render, redirect, get_object_or_404
@@ -71,8 +72,8 @@ def communes_by_wilaya(request):
     if wilaya_id:
         communes = list(
             Commune.objects.filter(wilaya_id=wilaya_id)
-            .order_by("name_fr")
-            .values("id", "name_fr")
+            .order_by("name_ar")
+            .values("id", "name_ar")
         )
 
     return JsonResponse({"communes": communes})
@@ -222,11 +223,11 @@ def _build_candidate_summary(candidate):
         {"label": "رقم الهاتف", "value": getattr(candidate, "phone_number", "") or "—"},
         {
             "label": "ولاية الإقامة",
-            "value": getattr(candidate.wilaya, "name_fr", "—") if getattr(candidate, "wilaya", None) else "—"
+            "value": getattr(candidate.wilaya, "name_ar", "—") if getattr(candidate, "wilaya", None) else "—"
         },
         {
             "label": "البلدية",
-            "value": getattr(candidate.commune, "name_fr", "—") if getattr(candidate, "commune", None) else "—"
+            "value": getattr(candidate.commune, "name_ar", "—") if getattr(candidate, "commune", None) else "—"
         },
         {"label": "العنوان", "value": getattr(candidate, "address", "") or "—"},
         {"label": "الإدارة الحالية", "value": getattr(candidate, "current_administration", "") or "—"},
@@ -253,19 +254,32 @@ def start_application(request, slug=None):
         Q(deadline__isnull=True) | Q(deadline__gte=today)
     )
 
+    # =========================
+    # SLUG MODE
+    # =========================
     if slug:
         selected_poste = get_object_or_404(open_postes_qs, slug=slug)
         is_slug_locked = True
 
     has_open_postes = open_postes_qs.exists()
 
+    # =========================
+    # POST
+    # =========================
     if request.method == "POST":
         form = ApplicationForm(request.POST)
 
         if form.is_valid():
-            poste_1 = form.cleaned_data.get("poste_1")
-            poste_2 = form.cleaned_data.get("poste_2")
-            poste_3 = form.cleaned_data.get("poste_3")
+
+            # FIX: slug mode handling
+            if is_slug_locked and selected_poste:
+                poste_1 = selected_poste
+                poste_2 = form.cleaned_data.get("poste_2")
+                poste_3 = form.cleaned_data.get("poste_3")
+            else:
+                poste_1 = form.cleaned_data.get("poste_1")
+                poste_2 = form.cleaned_data.get("poste_2")
+                poste_3 = form.cleaned_data.get("poste_3")
 
             selected_postes = [
                 poste_1.id if poste_1 else None,
@@ -273,24 +287,31 @@ def start_application(request, slug=None):
                 poste_3.id if poste_3 else None,
             ]
 
-            # save selected postes in session to use in next steps
+            # save in session
             request.session["selected_poste_ids"] = selected_postes
-
-            # For backward compatibility, also set the primary poste in session
             request.session["selected_poste_id"] = poste_1.id
 
+            # reset flow
             request.session.pop("candidate_id", None)
             request.session.pop("draft_application_id", None)
 
-            print("Selected postes:", selected_postes)
             return redirect("applications:candidate_information")
+
+    # =========================
+    # GET
+    # =========================
     else:
-        print("GET request - checking for slug and open postes")
         initial = {}
+
+        # 🔥 FIX: pre-fill poste_1 instead of poste
         if selected_poste:
-            initial["poste"] = selected_poste
+            initial["poste_1"] = selected_poste
+
         form = ApplicationForm(initial=initial)
 
+    # =========================
+    # SUBTITLE
+    # =========================
     if not has_open_postes and not selected_poste:
         page_subtitle = "لا توجد وظائف أو مناصب مفتوحة حاليًا للتقديم."
     elif selected_poste:
@@ -298,7 +319,6 @@ def start_application(request, slug=None):
     else:
         page_subtitle = "اختر الوظيفة أو المنصب الذي تريد الترشح له ثم اضغط على متابعة الترشح."
 
-    print("Rendering start application page with context:")
     context = {
         "form": form,
         "selected_poste": selected_poste,
@@ -307,23 +327,34 @@ def start_application(request, slug=None):
         "page_title": "بدء الترشح",
         "page_subtitle": page_subtitle,
     }
+
     return render(request, "public/applications/start_application.html", context)
 
 
 def candidate_information(request):
-    
+
+    # =========================
+    # GET SELECTED POSTE
+    # =========================
     selected_poste = _get_selected_poste_from_session(request)
+
     if not selected_poste:
         messages.warning(request, "يرجى اختيار الوظيفة أو المنصب أولًا.")
         return redirect("applications:start_application")
 
+    # =========================
+    # POST
+    # =========================
     if request.method == "POST":
         form = CandidateProfileForm(request.POST)
+
         if form.is_valid():
             national_id_number = form.cleaned_data.get("national_id_number")
 
-            # check for existing active applications with the same national ID number
-            active_applications = Application.objects.filter(
+            # =========================
+            # CHECK ACTIVE APPLICATION
+            # =========================
+            active_applications = Application.objects.select_related("candidate").filter(
                 candidate__national_id_number=national_id_number,
                 status__in=[
                     Application.Status.SUBMITTED,
@@ -335,34 +366,49 @@ def candidate_information(request):
             )
 
             if active_applications.exists():
+                active_application = active_applications.first()
+
                 messages.error(
                     request,
                     "لديك طلب ترشح نشط (قيد الدراسة أو المعالجة). "
                     "يرجى انتظار نتيجة الطلب الحالي قبل تقديم طلب جديد."
                 )
-                active_application = active_applications.first()
 
                 return redirect(
                     "tracking:tracking_result_direct",
                     tracking_code=active_application.tracking_code
                 )
 
-            # Save candidate profile if valid and no active applications exist with the same national ID number
-            candidate = form.save()
+            # =========================
+            # SAVE CANDIDATE (SAFE)
+            # =========================
+            with transaction.atomic():
+                candidate = form.save()
 
             request.session["candidate_id"] = candidate.id
             request.session.pop("draft_application_id", None)
 
             return redirect("applications:motivation_step")
+
+    # =========================
+    # GET
+    # =========================
     else:
         form = CandidateProfileForm()
 
+    # =========================
+    # COMMUNE LOGIC
+    # =========================
     selected_commune_id = ""
+
     if request.method == "POST":
         selected_commune_id = request.POST.get("commune", "")
     elif getattr(form.instance, "commune_id", None):
         selected_commune_id = form.instance.commune_id
 
+    # =========================
+    # CONTEXT
+    # =========================
     context = {
         "form": form,
         "selected_poste": selected_poste,
@@ -371,6 +417,7 @@ def candidate_information(request):
         "page_title": "المعلومات الشخصية والمهنية",
         "page_subtitle": "يرجى تعبئة البيانات المطلوبة بدقة قبل متابعة الترشح.",
     }
+
     return render(request, "public/applications/candidate_information.html", context)
 
 def motivation_step(request):
@@ -381,10 +428,6 @@ def motivation_step(request):
         messages.warning(request, "يرجى استكمال المراحل السابقة أولًا.")
         return redirect("applications:start_application")
 
-    # Get rendom condidate and poste for testing purposes
-    # candidate = CandidateProfile.objects.first()
-    # selected_poste = Poste.objects.first()
-
     application = _get_or_create_draft_application(
         poste=selected_poste,
         candidate=candidate,
@@ -393,6 +436,7 @@ def motivation_step(request):
 
     if request.method == "POST":
         form = MotivationForm(request.POST)
+
         if form.is_valid():
             application.motivation_text = form.cleaned_data["motivation_text"]
             application.save()
@@ -407,6 +451,7 @@ def motivation_step(request):
 
     context = {
         "form": form,
+        "selected_poste": selected_poste,
         "page_title": "الرسالة التحفيزية",
         "page_subtitle": "اكتب رسالة تبرز دوافعك وأسباب ترشحك.",
     }

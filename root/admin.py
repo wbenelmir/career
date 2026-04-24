@@ -27,7 +27,6 @@ class LegalReferenceResource(resources.ModelResource):
         skip_unchanged = True
         report_skipped = True
 
-
 @admin.register(LegalReference)
 class LegalReferenceAdmin(ImportExportModelAdmin):
     resource_class = LegalReferenceResource
@@ -94,7 +93,6 @@ class LegalReferenceAdmin(ImportExportModelAdmin):
         }),
     )
 
-
 class PosteResource(resources.ModelResource):
     class Meta:
         model = Poste
@@ -118,7 +116,6 @@ class PosteResource(resources.ModelResource):
         import_id_fields = ("id",)
         skip_unchanged = True
         report_skipped = True
-
 
 @admin.register(Poste)
 class PosteAdmin(ImportExportModelAdmin):

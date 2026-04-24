@@ -45,6 +45,11 @@
                                 <div class="soft-box h-100">
                                     <div class="text-muted small mb-1">رقم الطلب</div>
                                     <div class="fw-bold fs-5">{{ application_number }}</div>
+                                    
+                                    <div class="text-muted small mb-1 mt-2">تاريخ الإرسال</div>
+                                    <div class="fw-bold">
+                                        {{ application.submitted_at|date:"Y/m/d H:i" }}
+                                    </div>
                                 </div>
                             </div>
 
@@ -70,8 +75,8 @@
 
                         </div>
 
-                        <div class="alert alert-warning rounded-4 mt-4 d-flex align-items-center gap-2">
-                            <i class="bi bi-exclamation-triangle-fill"></i>
+                        <div class="alert alert-info rounded-4 mt-4 d-flex align-items-center gap-2">
+                            <i class="bi bi-info-circle"></i>
                             <span>يرجى الاحتفاظ برمز التتبع لمتابعة حالة الطلب لاحقًا.</span>
                         </div>
 

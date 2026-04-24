@@ -1,5 +1,3 @@
-# applications/admin.py
-
 from django import forms
 from django.contrib import admin, messages
 from django.core.exceptions import ValidationError
@@ -10,10 +8,6 @@ from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 from .models import CandidateProfile, Application, ApplicationChoice
 
-
-# =========================
-# Reject Form
-# =========================
 
 class AdminRejectApplicationForm(forms.Form):
     rejection_reason = forms.CharField(
@@ -32,10 +26,6 @@ class AdminRejectApplicationForm(forms.Form):
         initial=True,
     )
 
-
-# =========================
-# Candidate Admin
-# =========================
 
 @admin.register(CandidateProfile)
 class CandidateProfileAdmin(admin.ModelAdmin):
@@ -115,29 +105,19 @@ class CandidateProfileAdmin(admin.ModelAdmin):
     eligibility_preview.short_description = "الأهلية"
 
 
-# =========================
-# ApplicationChoice Inline
-# =========================
-
 class ApplicationChoiceInline(admin.TabularInline):
     model = ApplicationChoice
     extra = 0
     fields = ("priority", "poste")
+    readonly_fields = ("priority", "poste")
+    can_delete = False
     ordering = ("priority",)
 
-
-# =========================
-# Application Admin
-# =========================
 
 @admin.register(Application)
 class ApplicationAdmin(admin.ModelAdmin):
 
     inlines = [ApplicationChoiceInline]
-
-    # =========================
-    # LIST VIEW
-    # =========================
 
     list_display = (
         "application_number",
@@ -151,7 +131,7 @@ class ApplicationAdmin(admin.ModelAdmin):
         "submitted_at",
     )
 
-    list_select_related = ("candidate", "poste")
+    list_select_related = ("candidate",)
 
     search_fields = (
         "application_number",
@@ -164,13 +144,8 @@ class ApplicationAdmin(admin.ModelAdmin):
     list_filter = (
         "status",
         "is_eligible",
-        "poste",
         "submitted_at",
     )
-
-    # =========================
-    # READONLY
-    # =========================
 
     readonly_fields = (
         "application_number",
@@ -190,11 +165,7 @@ class ApplicationAdmin(admin.ModelAdmin):
         "postes_summary",
     )
 
-    autocomplete_fields = ("candidate", "poste")
-
-    # =========================
-    # FIELDSETS (EVALUATION READY)
-    # =========================
+    autocomplete_fields = ("candidate",)
 
     fieldsets = (
 
@@ -206,7 +177,6 @@ class ApplicationAdmin(admin.ModelAdmin):
 
         ("📌 المناصب المختارة", {
             "fields": (
-                "poste",
                 "postes_summary",
             )
         }),
@@ -257,10 +227,6 @@ class ApplicationAdmin(admin.ModelAdmin):
 
     ordering = ("-created_at",)
 
-    # =========================
-    # DISPLAY HELPERS
-    # =========================
-
     def primary_poste_display(self, obj):
         poste = obj.get_primary_poste()
         return poste.title if poste else "-"
@@ -273,7 +239,7 @@ class ApplicationAdmin(admin.ModelAdmin):
             return "-"
 
         html = "<br>".join([
-            f"{c.priority}. {c.poste.title}"
+            f"{c.priority}. {c.poste.title}" + (" <strong>(أساسي)</strong>" if c.priority == 1 else "")
             for c in choices
         ])
 
@@ -285,10 +251,6 @@ class ApplicationAdmin(admin.ModelAdmin):
         return obj.has_all_required_documents()
     documents_complete.boolean = True
     documents_complete.short_description = "الوثائق مكتملة"
-
-    # =========================
-    # MOTIVATION
-    # =========================
 
     def motivation_display(self, obj):
         if not obj.motivation_text:
@@ -312,10 +274,6 @@ class ApplicationAdmin(admin.ModelAdmin):
         )
     motivation_word_count_display.short_description = "عدد الكلمات"
 
-    # =========================
-    # ADMIN ACTION LINKS
-    # =========================
-
     def admin_actions_links(self, obj):
         if not obj.pk:
             return "احفظ أولًا"
@@ -336,10 +294,6 @@ class ApplicationAdmin(admin.ModelAdmin):
             final_url,
         )
     admin_actions_links.short_description = "إجراءات سريعة"
-
-    # =========================
-    # STATUS ACTIONS
-    # =========================
 
     def _apply_status_action(self, request, queryset, new_status, note, visible_to_candidate=False):
         for application in queryset:
@@ -380,10 +334,6 @@ class ApplicationAdmin(admin.ModelAdmin):
         "action_accept_final",
         "action_move_to_waiting_list",
     )
-
-    # =========================
-    # REJECT VIEWS (UNCHANGED)
-    # =========================
 
     def get_urls(self):
         urls = super().get_urls()

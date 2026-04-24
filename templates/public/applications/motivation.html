@@ -9,33 +9,29 @@
 {% block content %}
 <section class="section-padding pt-0">
     <div class="container">
-        <div class="row justify-content-center">
+
+        <!--  Stepper (موحد) -->
+        {% include "includes/applications/stepper.html" with current_step=3 %}
+
+        <div class="row g-4 mt-1">
+
+            <!-- MAIN -->
             <div class="col-lg-8">
 
-                <div class="custom-card shadow-sm border-0">
-                    <div class="card-body p-4 p-lg-5">
+                <div class="custom-card">
+                    <div class="card-body">
 
-                        <!-- Header -->
-                        <div class="text-center mb-4">
-                            <span class="badge-soft-primary px-3 py-2">الخطوة 3 من 6</span>
-                        </div>
+                        <h2 class="section-title">الرسالة التحفيزية</h2>
+                        <p class="section-subtitle">
+                           اكتب رسالة تبرز دوافعك، خبرتك، ولماذا ترى نفسك مناسبًا للمنصب المختار.
+                        </p>
 
-                        <div class="mb-4 text-center">
-                            <h2 class="section-title mb-2">الرسالة التحفيزية</h2>
-                            <p class="text-muted mb-0" style="line-height:1.9;">
-                                اكتب رسالة تبرز دوافعك، خبرتك، ولماذا ترى نفسك مناسبًا للمناصب المختارة.
-                            </p>
-                        </div>
-
-                        <!-- Instructions -->
+                        <!--  عرض المنصب -->
+                        {% if selected_poste %}
                         <div class="alert alert-light border mb-4">
-                            <ul class="rtl-list mb-0 small" style="line-height:1.9;">
-                                <li>اشرح خبرتك المهنية بإيجاز.</li>
-                                <li>وضح سبب اهتمامك بالمنصب.</li>
-                                <li>بيّن القيمة التي يمكنك إضافتها.</li>
-                                <li>تجنب النسخ واللصق أو النصوص العامة.</li>
-                            </ul>
+                            <strong>المنصب المختار:</strong> {{ selected_poste.title }}
                         </div>
+                        {% endif %}
 
                         <form method="post" id="motivationForm">
                             {% csrf_token %}
@@ -45,13 +41,13 @@
                                 {{ form.motivation_text }}
                             </div>
 
-                            <!-- Live Stats -->
+                            <!-- Stats -->
                             <div class="d-flex justify-content-between align-items-center small mb-2">
                                 <span id="wordCount" class="fw-semibold">0 كلمة</span>
                                 <span class="text-muted">الحد الأدنى: 100 | الحد الأقصى: 500</span>
                             </div>
 
-                            <!-- Progress bar -->
+                            <!-- Progress -->
                             <div class="progress mb-3" style="height: 6px;">
                                 <div id="progressBar" class="progress-bar" style="width: 0%"></div>
                             </div>
@@ -72,7 +68,7 @@
 
                                 <a href="{% url 'applications:candidate_information' %}"
                                    class="btn btn-outline-custom px-4">
-                                    الرجوع
+                                    رجوع
                                 </a>
 
                                 <button type="submit"
@@ -93,18 +89,52 @@
                 </div>
 
             </div>
+
+            <!--  SIDEBAR (تعليمات مثل الصفحات الأخرى) -->
+            <div class="col-lg-4">
+
+                <div class="custom-card mb-4">
+                    <div class="card-body">
+                        <h3 class="section-title">تعليمات</h3>
+
+                        <ul class="rtl-list text-muted mb-0" style="line-height:1.9;">
+                            <li>اشرح خبرتك المهنية بإيجاز.</li>
+                            <li>وضح سبب اهتمامك بالمنصب.</li>
+                            <li>بيّن القيمة التي يمكنك إضافتها.</li>
+                            <li>اكتب بأسلوب واضح ومنظم.</li>
+                            <li>تجنب النسخ واللصق.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="custom-card">
+                    <div class="card-body">
+                        <h3 class="section-title">نصائح</h3>
+
+                        <ul class="rtl-list text-muted mb-0 small">
+                            <li>يفضل أن تكون الرسالة بين 150 و 300 كلمة.</li>
+                            <li>استخدم أمثلة حقيقية من تجربتك.</li>
+                            <li>ركّز على القيمة التي ستضيفها.</li>
+                        </ul>
+                    </div>
+                </div>
+
+            </div>
+
         </div>
+
     </div>
 </section>
 
 <script>
-// Live UX logic
 document.addEventListener("DOMContentLoaded", function () {
+
     const textarea = document.querySelector("textarea");
     const counter = document.getElementById("wordCount");
     const progress = document.getElementById("progressBar");
     const feedback = document.getElementById("feedbackMessage");
     const submitBtn = document.getElementById("submitBtn");
+    const form = document.getElementById("motivationForm");
 
     const MIN = 100;
     const MAX = 500;
@@ -115,11 +145,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
         counter.textContent = count + " كلمة";
 
-        // progress %
         const percent = Math.min((count / MAX) * 100, 100);
         progress.style.width = percent + "%";
 
-        // state handling
         if (count === 0) {
             feedback.textContent = "ابدأ في كتابة رسالتك...";
             feedback.className = "small text-muted";
@@ -148,6 +176,12 @@ document.addEventListener("DOMContentLoaded", function () {
 
     textarea.addEventListener("input", update);
     update();
+
+    form.addEventListener("submit", function () {
+        submitBtn.disabled = true;
+        submitBtn.innerText = "جاري الحفظ...";
+    });
+
 });
 </script>
 

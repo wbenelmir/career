@@ -148,24 +148,40 @@ class ApplicationForm(forms.Form):
         poste_2 = cleaned_data.get("poste_2")
         poste_3 = cleaned_data.get("poste_3")
 
-        postes = [poste_1, poste_2, poste_3]
-        selected = [p for p in postes if p]
+        # =========================
+        # DUPLICATE CHECK
+        # =========================
 
-        # no duplicates
-        if len(selected) != len(set(selected)):
-            raise ValidationError("لا يمكن اختيار نفس المنصب أكثر من مرة.")
+        if poste_1 and poste_2 and poste_1 == poste_2:
+            self.add_error("poste_2", "تم اختيار هذا المنصب مسبقًا في الأولوية الأولى")
 
-        # enforce order logic
+        if poste_1 and poste_3 and poste_1 == poste_3:
+            self.add_error("poste_3", "تم اختيار هذا المنصب مسبقًا في الأولوية الأولى")
+
+        if poste_2 and poste_3 and poste_2 == poste_3:
+            self.add_error("poste_3", "تم اختيار هذا المنصب مسبقًا في الأولوية الثانية")
+
+        # =========================
+        # ORDER VALIDATION
+        # =========================
+
         if not poste_1 and (poste_2 or poste_3):
-            raise ValidationError("يجب اختيار المنصب الأول قبل باقي الاختيارات.")
+            self.add_error("poste_1", "يجب اختيار المنصب الأول قبل باقي الاختيارات")
 
-        # safety check (poste still open)
+        # =========================
+        # AVAILABILITY CHECK
+        # =========================
+
         today = timezone.localdate()
-        for poste in selected:
-            if not poste.is_open or (poste.deadline and poste.deadline < today):
-                raise ValidationError(
-                    f"المنصب '{poste}' لم يعد متاحًا."
-                )
+
+        for field_name, poste in [
+            ("poste_1", poste_1),
+            ("poste_2", poste_2),
+            ("poste_3", poste_3),
+        ]:
+            if poste:
+                if not poste.is_open or (poste.deadline and poste.deadline < today):
+                    self.add_error(field_name, f"المنصب '{poste}' لم يعد متاحًا")
 
         return cleaned_data
 
@@ -199,9 +215,18 @@ class CandidateProfileForm(forms.ModelForm):
             'years_of_effective_service',
         ]
         widgets = {
-            'date_of_birth': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
-            'tenure_decision_date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
-            'address': forms.Textarea(attrs={'rows': 3, 'class': 'form-control'}),
+            'date_of_birth': forms.DateInput(attrs={
+                'type': 'date',
+                'class': 'form-control',
+            }),
+            'tenure_decision_date': forms.DateInput(attrs={
+                'type': 'date',
+                'class': 'form-control',
+            }),
+            'address': forms.Textarea(attrs={
+                'rows': 3,
+                'class': 'form-control'
+            }),
         }
 
     def __init__(self, *args, **kwargs):
@@ -216,6 +241,18 @@ class CandidateProfileForm(forms.ModelForm):
 
         self.fields['wilaya'].widget.attrs["class"] = "form-select"
         self.fields['commune'].widget.attrs["class"] = "form-select"
+
+        # =========================
+        # CLEAN EMPTY LABELS (FIX ----)
+        # =========================
+        if 'gender' in self.fields:
+            self.fields['gender'].empty_label = "اختر الجنس"
+
+        if 'wilaya' in self.fields:
+            self.fields['wilaya'].empty_label = "اختر الولاية"
+
+        if 'commune' in self.fields:
+            self.fields['commune'].empty_label = "اختر البلدية"
 
         # =========================
         # REQUIRED FIELDS
@@ -255,7 +292,7 @@ class CandidateProfileForm(forms.ModelForm):
             self.fields[field].error_messages['required'] = msg
 
         # =========================
-        # PLACEHOLDERS
+        # PLACEHOLDERS (PERSONAL)
         # =========================
         self.fields['first_name'].widget.attrs.update({
             'placeholder': 'مثال: محمد أمين',
@@ -273,7 +310,7 @@ class CandidateProfileForm(forms.ModelForm):
         })
 
         self.fields['national_id_number'].widget.attrs.update({
-            'placeholder': '18 رقم',
+            'placeholder': 'مثال: 123456789012345678',
             'dir': 'ltr',
             'maxlength': '18',
         })
@@ -291,6 +328,39 @@ class CandidateProfileForm(forms.ModelForm):
         self.fields['address'].widget.attrs.update({
             'placeholder': 'العنوان الكامل',
             'data-arabic-only': 'true',
+        })
+
+        # =========================
+        # PLACEHOLDERS (PROFESSIONAL) 🔥
+        # =========================
+        self.fields['current_administration'].widget.attrs.update({
+            'placeholder': 'مثال: وزارة الداخلية',
+            'data-arabic-only': 'true',
+        })
+
+        self.fields['current_position_grade'].widget.attrs.update({
+            'placeholder': 'مثال: متصرف رئيسي',
+            'data-arabic-only': 'true',
+        })
+
+        self.fields['current_function'].widget.attrs.update({
+            'placeholder': 'مثال: رئيس مصلحة الموارد البشرية',
+            'data-arabic-only': 'true',
+        })
+
+        self.fields['years_of_seniority'].widget.attrs.update({
+            'min': '0',
+        })
+
+        self.fields['years_of_effective_service'].widget.attrs.update({
+            'min': '0',
+        })
+
+        # =========================
+        # DATE LIMIT (UX)
+        # =========================
+        self.fields['date_of_birth'].widget.attrs.update({
+            'max': timezone.now().date().isoformat()
         })
 
         # =========================

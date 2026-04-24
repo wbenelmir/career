@@ -16,8 +16,9 @@
                         </div>
 
                         <div class="text-center mb-4">
+                            <h2 class="fw-bold mb-2">بدء الترشح</h2>
                             <p class="section-subtitle mb-0">
-                                اختر المنصب المطلوب، ثم أكّد التصريح وأدخل رمز التحقق للانتقال إلى المرحلة التالية.
+                                اختر المناصب حسب الأولوية، ثم أكّد التصريح وأدخل رمز التحقق للمتابعة.
                             </p>
                         </div>
 
@@ -75,48 +76,48 @@
                             {% csrf_token %}
 
                             {% if not is_slug_locked %}
-                            <div class="mb-4">
 
-                                <h3 class="section-title mb-3">اختر المناصب حسب الأولوية</h3>
-
-                                <div class="alert alert-light border mb-4" style="line-height: 1.9;">
-                                    يمكنك اختيار منصب واحد أو أكثر (حتى 3 مناصب).<br>
-                                    سيتم اعتماد ترتيب الأولوية كما يلي:
-                                    <strong>الأولوية الأولى ثم الثانية ثم الثالثة</strong>.
-                                </div>
-
-                                <!-- PRIORITY 1 -->
+                                <!-- NORMAL MODE -->
                                 <div class="mb-4">
                                     <label class="form-label fw-bold text-success">
                                         الأولوية الأولى (إجباري)
                                     </label>
                                     {{ form.poste_1 }}
-                                    {% if form.poste_1.errors %}
-                                        <div class="text-danger small mt-2">
-                                            {{ form.poste_1.errors }}
-                                        </div>
-                                    {% endif %}
                                 </div>
 
-                                <!-- PRIORITY 2 -->
                                 <div class="mb-4">
-                                    <label class="form-label fw-semibold text-muted">
+                                    <label class="form-label text-muted">
                                         الأولوية الثانية (اختياري)
                                     </label>
                                     {{ form.poste_2 }}
                                 </div>
 
-                                <!-- PRIORITY 3 -->
                                 <div class="mb-4">
-                                    <label class="form-label fw-semibold text-muted">
+                                    <label class="form-label text-muted">
                                         الأولوية الثالثة (اختياري)
                                     </label>
                                     {{ form.poste_3 }}
                                 </div>
 
-                            </div>
                             {% else %}
-                            <input type="hidden" name="poste" value="{{ selected_poste.id }}">
+
+                                <!-- SLUG MODE -->
+                                <input type="hidden" name="poste_1" value="{{ selected_poste.id }}">
+
+                                <div class="mb-4">
+                                    <label class="form-label fw-bold text-muted">
+                                        الأولوية الثانية (اختياري)
+                                    </label>
+                                    {{ form.poste_2 }}
+                                </div>
+
+                                <div class="mb-4">
+                                    <label class="form-label text-muted">
+                                        الأولوية الثالثة (اختياري)
+                                    </label>
+                                    {{ form.poste_3 }}
+                                </div>
+
                             {% endif %}
 
                             <div class="custom-card mt-4 shadow-sm border-0 declaration-card">
@@ -124,16 +125,13 @@
                                     <h3 class="section-title mb-3">تصريح قبل بدء الترشح</h3>
 
                                     <div class="alert alert-light border mb-4 declaration-text-box">
-                                        قبل البدء في إجراءات الترشح، أصرّح بأن المعلومات والوثائق التي سأقوم بإدراجها لاحقًا ضمن ملف الترشح ستكون صحيحة وكاملة ومطابقة للوثائق الأصلية، وأتحمل كامل المسؤولية القانونية والإدارية عن صحة البيانات المقدمة، وعن أي تصريح غير صحيح أو وثيقة غير مطابقة أو حالة تزوير قد تثبت لاحقًا.
-                                        <br><br>
-                                        كما أوافق صراحةً على جمع ومعالجة بياناتي الشخصية في إطار دراسة ملف الترشح، وذلك وفقًا لأحكام القانون رقم 18-07 المتعلق بحماية الأشخاص الطبيعيين في مجال معالجة المعطيات ذات الطابع الشخصي.
+                                        أصرّح بصحة جميع المعلومات والوثائق المقدمة، وأوافق على معالجة بياناتي
+                                        وفقًا لأحكام القانون رقم 18-07 المتعلق بحماية الأشخاص الطبيعيين في مجال معالجة المعطيات ذات الطابع الشخصي
                                     </div>
 
                                     <div class="declaration-confirm-box mt-3">
                                         <div class="form-check declaration-check-row mb-0">
-                                            <span class="mt-1">
-                                                {{ form.declaration_confirmation }}
-                                            </span>
+                                            {{ form.declaration_confirmation }}
                                             <label class="form-check-label declaration-check-label" for="id_declaration_confirmation">
                                                 أوافق على التصريح المذكور أعلاه وألتزم بمضمونه.
                                             </label>
@@ -148,6 +146,7 @@
                                 </div>
                             </div>
 
+                            <!-- CAPTCHA -->
                             <div class="custom-card mt-4 shadow-sm border-0 captcha-card">
                                 <div class="card-body">
                                     <div class="d-flex align-items-center justify-content-between gap-2 flex-wrap mb-2">
@@ -184,14 +183,6 @@
                                 </div>
                             </div>
 
-                            {% if form.non_field_errors %}
-                            <div class="alert alert-danger py-2 px-3 mt-3">
-                                {% for error in form.non_field_errors %}
-                                <div>{{ error }}</div>
-                                {% endfor %}
-                            </div>
-                            {% endif %}
-
                             <div class="submit-section text-center mt-5">
                                 <button type="submit"
                                         class="btn btn-primary-custom btn-lg px-5 submit-main-btn"
@@ -206,42 +197,15 @@
                                     </a>
                                 </div>
 
-                                <div class="submit-helper-text mt-3">
-                                    بالضغط على "متابعة الترشح" فإنك تقرّ بموافقتك على التصريح وإدخال رمز التحقق بشكل صحيح.
-                                </div>
                             </div>
-
                             <div class="text-center mt-4">
                                 <a href="{% url 'tracking:track_application' %}"
                                    class="small text-decoration-none text-muted">
                                     لديك طلب سابق؟
-                                    <span class="text-primary">تتبع حالته</span>
+                                    <span class="text-success">تتبع حالته</span>
                                 </a>
                             </div>
                         </form>
-                        {% else %}
-                        <div class="text-center py-5">
-                            <div class="mb-3">
-                                <i class="bi bi-briefcase display-5 text-success"></i>
-                            </div>
-
-                            <h4 class="fw-bold mb-2">لا توجد فرص متاحة حاليًا</h4>
-
-                            <p class="text-muted mb-4">
-                                لا توجد وظائف أو مناصب مفتوحة للتقديم في الوقت الحالي.
-                                يمكنك العودة لاحقًا للاطلاع على الفرص الجديدة فور نشرها على المنصة.
-                            </p>
-
-                            <div class="d-flex justify-content-center flex-wrap gap-3">
-                                <a href="{% url 'root:poste_list' %}" class="btn btn-primary-custom px-4">
-                                    العودة إلى قائمة الفرص
-                                </a>
-
-                                <a href="{% url 'tracking:track_application' %}" class="btn btn-outline-custom px-4">
-                                    تتبع الطلب
-                                </a>
-                            </div>
-                        </div>
                         {% endif %}
 
                     </div>
@@ -252,9 +216,197 @@
     </div>
 </section>
 {% endblock %}
+{% block extra_js %}
 
+<!-- jQuery -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<!-- Select2 -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const ids = ["#id_poste_1", "#id_poste_2", "#id_poste_3"];
+    const selects = ids.map(id => document.querySelector(id)).filter(Boolean);
+
+    // =========================
+    // SIMPLE TOAST (reuse idea)
+    // =========================
+
+    function showToast(message, type = "error") {
+
+        const toast = document.createElement("div");
+        toast.className = "simple-toast";
+
+        toast.innerHTML = `
+            <div class="simple-toast-body">
+                ${message}
+            </div>
+        `;
+
+        document.body.appendChild(toast);
+
+        setTimeout(() => {
+            toast.classList.add("show");
+        }, 10);
+
+        setTimeout(() => {
+            toast.remove();
+        }, 3000);
+    }
+
+    // =========================
+    // INIT SELECT2
+    // =========================
+
+    selects.forEach(function(el) {
+        $(el).select2({
+            placeholder: "اختر المنصب...",
+            allowClear: false,
+            width: "100%",
+            dir: "rtl",
+            dropdownParent: $(el).parent(),
+            minimumResultsForSearch: 0
+        });
+    });
+
+    // =========================
+    // DUPLICATE VALIDATION
+    // =========================
+
+    function getValues() {
+        return selects.map(el => el.value).filter(v => v);
+    }
+
+    selects.forEach(select => {
+
+        let previousValue = null;
+
+        $(select).on("select2:opening", function () {
+            previousValue = $(this).val();
+        });
+
+        $(select).on("select2:select", function (e) {
+
+            const selectedValue = e.params.data.id;
+            const values = getValues();
+
+            const duplicates = values.filter(v => v === selectedValue);
+
+            if (duplicates.length > 1) {
+
+                showToast("لا يمكن اختيار نفس المنصب أكثر من مرة", "error");
+
+                $(this).val(previousValue).trigger("change");
+            }
+
+        });
+
+    });
+
+});
+</script>
+
+{% endblock %}
 {% block extra_css %}
 <style>
+
+/* ============================= */
+/* ===== SELECT2 FULL FIX ===== */
+/* ============================= */
+
+.select2-container {
+    width: 100% !important;
+}
+
+/* main box */
+.select2-container--default .select2-selection--single {
+    height: 54px !important;
+    border-radius: 12px !important;
+    border: 1px solid #dcdfe3 !important;
+    background-color: #fff !important;
+
+    display: flex;
+    align-items: center;
+
+    padding: 0 16px;
+
+    box-shadow: none !important;
+    transition: all 0.2s ease;
+}
+
+/* hover */
+.select2-container--default .select2-selection--single:hover {
+    border-color: #cfd8dc !important;
+}
+
+/* focus */
+.select2-container--default.select2-container--focus .select2-selection--single {
+    border-color: #22b893 !important;
+    box-shadow: 0 0 0 0.12rem rgba(34, 184, 147, 0.12) !important;
+}
+
+/* text */
+.select2-container--default .select2-selection__rendered {
+    padding: 0 !important;
+    margin: 0 !important;
+    line-height: normal !important;
+
+    text-align: right;
+    color: #2c3e50;
+    font-size: 0.95rem;
+}
+
+/* placeholder */
+.select2-container--default .select2-selection__placeholder {
+    color: #9aa6a1;
+}
+
+/* arrow */
+.select2-container--default .select2-selection__arrow {
+    left: 12px !important;
+    right: auto !important;
+    height: 100% !important;
+}
+
+/* arrow shape */
+.select2-container--default .select2-selection__arrow b {
+    border-color: #6c757d transparent transparent transparent !important;
+    border-width: 6px 5px 0 5px !important;
+}
+
+/* hide clear button */
+.select2-container--default .select2-selection__clear {
+    display: none !important;
+}
+
+/* dropdown */
+.select2-dropdown {
+    border-radius: 12px;
+    border: 1px solid #dcdfe3;
+    text-align: right;
+}
+
+/* search */
+.select2-search__field {
+    text-align: right;
+    font-size: 0.95rem;
+}
+
+/* highlight option */
+.select2-results__option--highlighted {
+    background-color: #f1f3f5 !important;
+    color: #333 !important;
+}
+
+
+
+/* ============================= */
+/* ===== DECLARATION STYLE ===== */
+/* ============================= */
+
 .declaration-text-box {
     line-height: 2;
     border-radius: 16px;
@@ -277,10 +429,7 @@
 .declaration-check-row .form-check-input {
     width: 1.5rem;
     height: 1.5rem;
-    margin: 0;
-    flex-shrink: 0;
     border: 2px solid #9aa6a1;
-    box-shadow: none;
     cursor: pointer;
 }
 
@@ -289,116 +438,17 @@
     border-color: #22b893;
 }
 
-.declaration-check-row .form-check-input:focus {
-    box-shadow: 0 0 0 0.18rem rgba(34, 184, 147, 0.18);
-    border-color: #22b893;
-}
-
 .declaration-check-label {
     line-height: 1.95;
-    cursor: pointer;
-    color: #243746;
     font-weight: 500;
 }
 
-.captcha-card .section-subtitle {
-    max-width: 700px;
-}
 
-.captcha-panel {
-    border: 1px solid #e9ecef;
-    border-radius: 18px;
-    background: #fafcfc;
-    padding: 1rem;
-}
 
-.captcha-image-panel {
-    text-align: center;
-    margin-bottom: 0.75rem;
-}
+/* ============================= */
+/* ===== CAPTCHA STYLE ===== */
+/* ============================= */
 
-.captcha-image-label {
-    font-size: 0.9rem;
-    color: #6c757d;
-    margin-bottom: 0.6rem;
-}
-
-.captcha-image-box {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-}
-
-.captcha-image-box img {
-    max-width: 220px;
-    height: auto;
-    border-radius: 12px;
-    border: 1px solid #dee2e6;
-    background: #fff;
-    padding: 6px;
-    display: block;
-    margin-bottom: 12px;
-    box-shadow: 0 0.25rem 0.8rem rgba(0, 0, 0, 0.04);
-}
-
-.captcha-image-box input[type="text"],
-.captcha-image-box input[type="tel"],
-.captcha-image-box input[type="search"],
-.captcha-image-box input:not([type="hidden"]) {
-    direction: ltr;
-    text-align: center;
-    font-weight: 700;
-    letter-spacing: 2px;
-    max-width: 320px;
-    margin: 0 auto;
-}
-
-.captcha-image-box input[type="hidden"] {
-    display: none;
-}
-
-.captcha-help-text {
-    font-size: 0.88rem;
-    color: #6c757d;
-    text-align: center;
-    line-height: 1.8;
-}
-
-.submit-main-btn {
-    min-width: 240px;
-    font-weight: 700;
-    font-size: 1.1rem;
-    border-radius: 14px;
-    box-shadow: 0 0.5rem 1.2rem rgba(13, 122, 95, 0.15);
-    transition: all 0.25s ease;
-}
-
-.submit-main-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 0.7rem 1.5rem rgba(13, 122, 95, 0.25);
-}
-
-.submit-helper-text {
-    font-size: 0.9rem;
-    color: #6c757d;
-    line-height: 1.9;
-}
-
-@media (max-width: 576px) {
-    .captcha-image-box img {
-        max-width: 180px;
-    }
-
-    .captcha-image-box input[type="text"],
-    .captcha-image-box input:not([type="hidden"]) {
-        max-width: 100%;
-    }
-
-    .submit-main-btn {
-        min-width: 100%;
-    }
-}
 .captcha-panel {
     border: 1px solid #e9ecef;
     border-radius: 18px;
@@ -406,18 +456,6 @@
     padding: 1.25rem;
 }
 
-.captcha-image-panel {
-    text-align: center;
-    margin-bottom: 0.9rem;
-}
-
-.captcha-image-label {
-    font-size: 0.95rem;
-    color: #6c757d;
-    margin-bottom: 0.75rem;
-    font-weight: 600;
-}
-
 .captcha-image-box {
     display: flex;
     flex-direction: column;
@@ -425,86 +463,73 @@
     justify-content: center;
 }
 
+/* fix spacing */
+.captcha-image-panel {
+    margin-bottom: 0.5rem;
+}
+
+/* image */
 .captcha-image-box img {
-    width: 260px;
-    max-width: 100%;
-    height: auto;
-    border-radius: 14px;
-    border: 1px solid #d8e0dd;
-    background: #fff;
-    padding: 8px;
-    display: block;
-    margin-bottom: 14px;
-    box-shadow: 0 0.25rem 0.8rem rgba(0, 0, 0, 0.04);
-}
-
-.captcha-image-box input[type="text"],
-.captcha-image-box input[type="tel"],
-.captcha-image-box input[type="search"],
-.captcha-image-box input:not([type="hidden"]) {
-    direction: ltr;
-    text-align: center;
-    font-weight: 700;
-    letter-spacing: 2px;
-    max-width: 360px;
-    margin: 0 auto;
-    min-height: 52px;
-}
-
-.captcha-image-box input[type="hidden"] {
-    display: none;
-}
-
-.captcha-help-text {
-    font-size: 0.9rem;
-    color: #6c757d;
-    text-align: center;
-    line-height: 1.8;
-}
-captcha-image-box img {
     width: 280px;
     max-width: 100%;
-    height: auto;
     border-radius: 14px;
     border: 1px solid #d8e0dd;
     background: #fff;
     padding: 8px;
-    display: block;
     margin-bottom: 14px;
-    box-shadow: 0 0.25rem 0.8rem rgba(0, 0, 0, 0.04);
 }
 
-.captcha-image-box input[type="text"],
-.captcha-image-box input:not([type="hidden"]) {
+/* input */
+.captcha-image-box input {
     direction: ltr;
     text-align: center;
     font-weight: 800;
-    font-size: 1.1rem;
-    letter-spacing: 3px;
-    max-width: 380px;
-    margin: 0 auto;
-    min-height: 55px;
-}
-.captcha-image-box input[type="text"],
-.captcha-image-box input:not([type="hidden"]) {
-    direction: ltr;
-    text-align: center;
-
-    font-weight: 800;
-    font-size: 1.35rem;  
-    letter-spacing: 4px; 
-
+    font-size: 1.35rem;
+    letter-spacing: 4px;
     max-width: 420px;
     margin: 0 auto;
-
-    min-height: 60px;    
+    min-height: 60px;
     border-radius: 14px;
-
     border: 2px solid #d6e2de;
-    transition: all 0.2s ease;
 }
-input::placeholder {
-    letter-spacing: 5px;
+
+
+
+/* ============================= */
+/* ===== BUTTON STYLE ===== */
+/* ============================= */
+
+.submit-main-btn {
+    min-width: 240px;
+    font-weight: 700;
+}
+/* FIX VERTICAL ALIGNMENT */
+.select2-container--default .select2-selection__rendered {
+    display: flex !important;
+    align-items: center !important;
+    height: 100% !important;
+}
+/* SIMPLE TOAST */
+
+.simple-toast {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    background: #fff5f6;
+    border: 1px solid #f1c7cd;
+    color: #dc3545;
+    padding: 12px 16px;
+    border-radius: 12px;
+    box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.1);
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: 0.2s ease;
+    z-index: 9999;
+}
+
+.simple-toast.show {
+    opacity: 1;
+    transform: translateY(0);
 }
 </style>
 {% endblock %}

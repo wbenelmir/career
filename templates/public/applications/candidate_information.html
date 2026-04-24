@@ -16,7 +16,7 @@
 
             <div class="col-lg-8">
 
-                <div class="custom-card">
+                <div class="custom-card  p-4">
                     <div class="card-body">
 
                         <h2 class="section-title">استمارة المعلومات</h2>
@@ -24,7 +24,7 @@
                             يرجى إدخال المعلومات بدقة. حفظ هذه المرحلة لا يعني الإرسال النهائي للطلب.
                         </p>
 
-                        <form method="post" novalidate>
+                        <form method="post" novalidate id="candidateForm">
                             {% csrf_token %}
 
                             {% if form.non_field_errors %}
@@ -276,15 +276,24 @@
                             </div>
 
                             <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mt-4">
+
+                                {% if selected_poste %}
+                                <a href="{% url 'applications:start_application_with_slug' selected_poste.slug %}" class="btn btn-outline-custom">
+                                    <i class="bi bi-arrow-right-circle ms-1"></i>
+                                    رجوع
+                                </a>
+                                {% else %}
                                 <a href="{% url 'applications:start_application' %}" class="btn btn-outline-custom">
                                     <i class="bi bi-arrow-right-circle ms-1"></i>
                                     رجوع
                                 </a>
+                                {% endif %}
 
-                                <button type="submit" class="btn btn-primary-custom">
+                                <button type="submit" class="btn btn-primary-custom" id="submitBtn">
                                     حفظ ومتابعة
                                     <i class="bi bi-arrow-left-circle ms-1"></i>
                                 </button>
+
                             </div>
                         </form>
                     </div>
@@ -323,7 +332,7 @@
                             </div>
                             <div class="d-flex align-items-center gap-3">
                                 <span class="badge-soft-info">3</span>
-                                <span class="text-muted">رفع الوثائق</span>
+                                <span class="text-muted">تحميل الوثائق</span>
                             </div>
                             <div class="d-flex align-items-center gap-3">
                                 <span class="badge-soft-info">4</span>
@@ -348,59 +357,80 @@
 {% block extra_js %}
 <script>
 document.addEventListener("DOMContentLoaded", function () {
+
     const wilayaSelect = document.getElementById("id_wilaya");
     const communeSelect = document.getElementById("id_commune");
+    const form = document.getElementById("candidateForm");
+    const submitBtn = document.getElementById("submitBtn");
+
     const communesApiUrl = "{{ communes_api_url }}";
     const selectedCommuneId = "{{ selected_commune_id|default:'' }}";
 
-    if (wilayaSelect && communeSelect) {
-        function resetCommuneOptions(placeholder = "اختر البلدية") {
-            communeSelect.innerHTML = "";
+    // =========================
+    // PREVENT DOUBLE SUBMIT
+    // =========================
+    if (form && submitBtn) {
+        form.addEventListener("submit", function () {
+            submitBtn.disabled = true;
+            submitBtn.innerText = "جاري المعالجة...";
+        });
+    }
 
+    // =========================
+    // COMMUNE LOGIC (IMPROVED)
+    // =========================
+    if (wilayaSelect && communeSelect) {
+
+        function resetCommuneOptions(text = "اختر البلدية") {
+            communeSelect.innerHTML = "";
             const option = document.createElement("option");
             option.value = "";
-            option.textContent = placeholder;
+            option.textContent = text;
             communeSelect.appendChild(option);
         }
 
-        function setCommuneDisabled(disabled = true) {
-            communeSelect.disabled = disabled;
+        function setCommuneDisabled(state = true) {
+            communeSelect.disabled = state;
         }
 
         function loadCommunes(wilayaId, selectedValue = "") {
-            resetCommuneOptions("جار تحميل البلديات...");
-            setCommuneDisabled(true);
 
             if (!wilayaId) {
-                resetCommuneOptions("اختر البلدية");
+                resetCommuneOptions();
                 setCommuneDisabled(true);
                 return;
             }
 
+            resetCommuneOptions("جار تحميل البلديات...");
+            setCommuneDisabled(true);
+
             fetch(`${communesApiUrl}?wilaya_id=${encodeURIComponent(wilayaId)}`)
                 .then(response => {
-                    if (!response.ok) {
-                        throw new Error("Failed to load communes");
-                    }
+                    if (!response.ok) throw new Error();
                     return response.json();
                 })
                 .then(data => {
-                    resetCommuneOptions("اختر البلدية");
 
-                    if (data.communes && data.communes.length > 0) {
+                    resetCommuneOptions();
+
+                    if (data.communes?.length) {
+                        const fragment = document.createDocumentFragment();
+
                         data.communes.forEach(commune => {
                             const option = document.createElement("option");
                             option.value = commune.id;
-                            option.textContent = commune.name_fr;
+                            option.textContent = commune.name_ar;
 
                             if (String(commune.id) === String(selectedValue)) {
                                 option.selected = true;
                             }
 
-                            communeSelect.appendChild(option);
+                            fragment.appendChild(option);
                         });
 
+                        communeSelect.appendChild(fragment);
                         setCommuneDisabled(false);
+
                     } else {
                         resetCommuneOptions("لا توجد بلديات متاحة");
                         setCommuneDisabled(true);
@@ -419,71 +449,38 @@ document.addEventListener("DOMContentLoaded", function () {
         if (wilayaSelect.value) {
             loadCommunes(wilayaSelect.value, selectedCommuneId);
         } else {
-            resetCommuneOptions("اختر البلدية");
+            resetCommuneOptions();
             setCommuneDisabled(true);
         }
     }
 
-    const arabicOnlyFields = document.querySelectorAll('[data-arabic-only="true"]');
-    const allowedPattern = /[\u0600-\u06FF0-9\s\-\/\.\:\,]/;
-
+    // =========================
+    // NIN CLEAN INPUT
+    // =========================
     const nationalIdField = document.getElementById("id_national_id_number");
 
     if (nationalIdField) {
         nationalIdField.addEventListener("input", function () {
             this.value = this.value.replace(/\D/g, "").slice(0, 18);
         });
-
-        nationalIdField.addEventListener("paste", function (e) {
-            e.preventDefault();
-            const pastedText = (e.clipboardData || window.clipboardData).getData("text");
-            this.value = pastedText.replace(/\D/g, "").slice(0, 18);
-        });
     }
 
-    function filterArabicAllowed(value) {
-        return Array.from(value).filter(char => allowedPattern.test(char)).join('');
-    }
+    // =========================
+    // ARABIC FILTER (SAFE)
+    // =========================
+    const arabicFields = document.querySelectorAll('[data-arabic-only="true"]');
+    const allowed = /[\u0600-\u06FF0-9\s\-\/\.\:\,]/;
 
-    arabicOnlyFields.forEach(field => {
-        field.setAttribute(
-            'title',
-            'يسمح فقط بالحروف العربية والأرقام والرموز: - / . : ,'
-        );
+    arabicFields.forEach(field => {
 
-        field.addEventListener('beforeinput', function (e) {
-            if (!e.data) return;
-
-            const chars = Array.from(e.data);
-            const invalid = chars.some(char => !allowedPattern.test(char));
-
-            if (invalid) {
-                e.preventDefault();
-            }
+        field.addEventListener("input", function () {
+            this.value = Array.from(this.value)
+                .filter(c => allowed.test(c))
+                .join('');
         });
 
-        field.addEventListener('input', function () {
-            const filtered = filterArabicAllowed(this.value);
-            if (this.value !== filtered) {
-                this.value = filtered;
-            }
-        });
-
-        field.addEventListener('paste', function (e) {
-            e.preventDefault();
-            const pastedText = (e.clipboardData || window.clipboardData).getData('text');
-            const filtered = filterArabicAllowed(pastedText);
-
-            const start = this.selectionStart || 0;
-            const end = this.selectionEnd || 0;
-            const currentValue = this.value;
-
-            this.value = currentValue.slice(0, start) + filtered + currentValue.slice(end);
-
-            const newPos = start + filtered.length;
-            this.setSelectionRange(newPos, newPos);
-        });
     });
+
 });
 </script>
 {% endblock %}
