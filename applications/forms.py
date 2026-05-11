@@ -406,8 +406,33 @@ class CandidateProfileForm(forms.ModelForm):
         if not value.isdigit() or len(value) != 18:
             raise ValidationError("رقم التعريف الوطني يجب أن يكون 18 رقمًا.")
 
-        if CandidateProfile.objects.filter(national_id_number=value).exists():
-            raise ValidationError("يوجد مترشح بنفس الرقم.")
+        existing_candidate = CandidateProfile.objects.filter(
+            national_id_number=value
+        ).first()
+
+        if existing_candidate:
+
+            blocked_statuses = [
+                'submitted',
+                'under_review',
+                'preselected',
+                'interview_scheduled',
+                'interview_completed',
+                'final_accepted',
+                'waiting_list', 
+            ]
+
+            has_blocking_application = existing_candidate.applications.filter(
+                status__in=blocked_statuses
+            ).exists()
+
+            if has_blocking_application:
+                raise ValidationError(
+                    "يوجد ملف ترشح قيد المعالجة أو تم قبوله مسبقًا بهذا الرقم."
+                )
+
+            # إذا كان البروفيل موجود لكن ليس بحالة مغلقة
+            self.existing_candidate = existing_candidate
 
         return value
 
