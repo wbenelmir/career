@@ -18,7 +18,7 @@ class CandidateProfile(models.Model):
     place_of_birth = models.CharField(max_length=255, blank=True, null=True, verbose_name="مكان الميلاد")
     gender = models.CharField(max_length=10, choices=GENDER_CHOICES, blank=True, null=True, verbose_name="الجنس")
 
-    national_id_number = models.CharField(max_length=30, unique=True, verbose_name="رقم التعريف الوطني")
+    national_id_number = models.CharField(max_length=30, verbose_name="رقم التعريف الوطني")
     email = models.EmailField(verbose_name="البريد الإلكتروني")
     phone_number = models.CharField(max_length=30, verbose_name="رقم الهاتف")
 
