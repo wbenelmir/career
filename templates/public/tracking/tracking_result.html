@@ -118,6 +118,175 @@
                     </div>
                 {% endif %}
 
+                {% if interview_schedule %}
+
+                <div class="custom-card mb-4">
+
+                    <div class="card-body p-4">
+
+                        <h3 class="section-title">
+                            تفاصيل المقابلة
+                        </h3>
+
+                        <div class="alert alert-info border-0 rounded-4 interview-box mb-0">
+                            {% now "U" as now_ts %}
+                            {% with interview_ts=interview_schedule.interview_date|date:"U" %}
+
+                                {% if interview_ts < now_ts %}
+
+                                    <div class="alert alert-secondary border-0 mb-4">
+
+                                        <i class="bi bi-clock-history ms-1"></i>
+
+                                        تم تجاوز تاريخ المقابلة المحدد.
+
+                                    </div>
+
+                                {% elif interview_ts == now_ts %}
+
+                                    <div class="alert alert-warning border-0 mb-4">
+
+                                        <i class="bi bi-calendar-event ms-1"></i>
+
+                                        المقابلة مبرمجة اليوم.
+
+                                    </div>
+
+                                {% else %}
+
+                                    <div class="alert alert-primary border-0 mb-4">
+
+                                        <i class="bi bi-info-circle ms-1"></i>
+
+                                        يرجى الحضور في الموعد المحدد للمقابلة.
+
+                                    </div>
+
+                                {% endif %}
+
+                            {% endwith %}
+                            <div class="row g-3">
+
+                                <div class="col-md-6">
+
+                                    <div class="small text-muted mb-1">
+                                        تاريخ المقابلة
+                                    </div>
+
+                                    <div class="fw-bold">
+                                        {{ interview_schedule.interview_date }}
+                                    </div>
+
+                                </div>
+
+                                <div class="col-md-6">
+
+                                    <div class="small text-muted mb-1">
+                                        وقت المقابلة
+                                    </div>
+
+                                    <div class="fw-bold">
+                                        {{ interview_schedule.interview_time }}
+                                    </div>
+
+                                </div>
+
+                                <div class="col-12">
+
+                                    <div class="small text-muted mb-1">
+                                        مكان المقابلة
+                                    </div>
+
+                                    <div class="fw-bold">
+                                        {{ interview_schedule.location }}
+                                    </div>
+
+                                </div>
+
+                                {% if interview_schedule.note %}
+
+                                    <div class="col-12">
+
+                                        <div class="small text-muted mb-1">
+                                            ملاحظات
+                                        </div>
+
+                                        <div>
+                                            {{ interview_schedule.note }}
+                                        </div>
+
+                                    </div>
+
+                                {% endif %}
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                {% endif %}
+
+                {% if active_completion_requests %}
+
+                <div class="custom-card mb-4">
+
+                    <div class="card-body p-4">
+
+                        <h3 class="section-title">
+                            استكمال الملف
+                        </h3>
+
+                        {% for completion in active_completion_requests %}
+
+                            <div class="alert alert-warning border-0 rounded-4 mb-3 completion-request-box">
+
+                                <div class="d-flex align-items-center gap-2 mb-3">
+
+                                    <i class="bi bi-exclamation-triangle-fill"></i>
+
+                                    <strong>
+                                        طلب استكمال
+                                    </strong>
+
+                                </div>
+
+                                <div class="completion-message mb-3">
+
+                                    {{ completion.message }}
+
+                                </div>
+
+                                <div class="small text-danger">
+
+                                    <strong>
+                                        آخر أجل للاستكمال:
+                                    </strong>
+
+                                    {{ completion.deadline|date:"Y/m/d H:i" }}
+
+                                </div>
+
+                            </div>
+
+                        {% endfor %}
+
+                        <div class="alert alert-light border-0 mb-0 small completion-help-box">
+
+                            يرجى استكمال الوثائق أو المعلومات المطلوبة
+                            قبل انتهاء المهلة المحددة،
+                            ثم إعادة إرسال الطلب.
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                {% endif %}
+
                 <div class="custom-card">
                     <div class="card-body p-4">
                         <h3 class="section-title">التسلسل الزمني لمعالجة الطلب</h3>
@@ -320,7 +489,9 @@ function copyTrackingCode(button) {
     line-height: 1.9;
     border-radius: 16px;
 }
-
+.interview-box {
+    line-height: 1.9;
+}
 .rejection-box {
     line-height: 1.95;
     border-radius: 16px;
@@ -387,6 +558,19 @@ function copyTrackingCode(button) {
 
 .tracking-info-list {
     line-height: 1.95;
+}
+
+.completion-request-box {
+    line-height: 1.95;
+}
+
+.completion-message {
+    white-space: pre-line;
+    color: #495057;
+}
+
+.completion-help-box {
+    line-height: 1.9;
 }
 
 @media (max-width: 576px) {

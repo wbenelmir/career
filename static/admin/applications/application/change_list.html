@@ -1,0 +1,108 @@
+{% extends "admin/change_list.html" %}
+
+{% block content %}
+
+{% if evaluation_stats %}
+
+<div class="evaluation-stats-grid">
+
+    <div class="evaluation-stat-card">
+        <div class="evaluation-stat-value">
+            {{ evaluation_stats.total }}
+        </div>
+        <div class="evaluation-stat-label">
+            إجمالي الطلبات
+        </div>
+    </div>
+
+    <div class="evaluation-stat-card">
+        <div class="evaluation-stat-value">
+            {{ evaluation_stats.under_review }}
+        </div>
+        <div class="evaluation-stat-label">
+            قيد الدراسة
+        </div>
+    </div>
+
+    <div class="evaluation-stat-card">
+        <div class="evaluation-stat-value">
+            {{ evaluation_stats.incomplete }}
+        </div>
+        <div class="evaluation-stat-label">
+            ملفات ناقصة
+        </div>
+    </div>
+
+    <div class="evaluation-stat-card">
+        <div class="evaluation-stat-value">
+            {{ evaluation_stats.accepted }}
+        </div>
+        <div class="evaluation-stat-label">
+            مقبولون نهائيًا
+        </div>
+    </div>
+
+    <div class="evaluation-stat-card">
+        <div class="evaluation-stat-value">
+            {{ evaluation_stats.average_score }}
+        </div>
+        <div class="evaluation-stat-label">
+            معدل العلامات
+        </div>
+    </div>
+
+</div>
+
+{% endif %}
+
+{{ block.super }}
+
+<style>
+
+.evaluation-stats-grid {
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(auto-fit, minmax(180px, 1fr));
+
+    gap: 16px;
+
+    margin-bottom: 24px;
+}
+
+.evaluation-stat-card {
+
+    background: var(--body-bg, #fff);
+
+    border: 1px solid var(--hairline-color, #e5e7eb);
+
+    border-radius: 18px;
+
+    padding: 20px;
+
+    text-align: center;
+
+    box-shadow:
+        0 2px 10px rgba(0,0,0,.03);
+}
+
+.evaluation-stat-value {
+
+    font-size: 2rem;
+
+    font-weight: 800;
+
+    margin-bottom: 8px;
+}
+
+.evaluation-stat-label {
+
+    color: var(--body-quiet-color, #6b7280);
+
+    font-size: .9rem;
+}
+
+</style>
+
+{% endblock %}

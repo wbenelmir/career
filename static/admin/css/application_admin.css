@@ -1,0 +1,331 @@
+/* =========================================================
+   APPLICATION ADMIN UI SYSTEM
+========================================================= */
+
+/* =========================================================
+   ROOT TOKENS
+========================================================= */
+
+:root {
+
+    --app-card-bg: #ffffff;
+    --app-card-border: #e5e7eb;
+
+    --app-muted-bg: #f8fafc;
+
+    --app-text: #1f2937;
+    --app-text-muted: #6b7280;
+
+    --app-success-bg: #e8f5e9;
+    --app-success-text: #1b5e20;
+
+    --app-warning-bg: #fff8e1;
+    --app-warning-text: #ef6c00;
+
+    --app-danger-bg: #ffebee;
+    --app-danger-text: #c62828;
+
+    --app-info-bg: #e3f2fd;
+    --app-info-text: #1565c0;
+
+    --app-purple-bg: #f3e5f5;
+    --app-purple-text: #8e24aa;
+
+    --app-radius: 14px;
+    --app-badge-radius: 999px;
+
+    --app-shadow:
+        0 1px 2px rgba(0,0,0,0.04);
+
+}
+
+
+/* =========================================================
+   DARK MODE
+========================================================= */
+
+html[data-theme="dark"] {
+
+    --app-card-bg: #1e293b;
+    --app-card-border: #334155;
+
+    --app-muted-bg: #0f172a;
+
+    --app-text: #f1f5f9;
+    --app-text-muted: #94a3b8;
+
+    --app-success-bg: rgba(46,125,50,.15);
+    --app-success-text: #81c784;
+
+    --app-warning-bg: rgba(239,108,0,.15);
+    --app-warning-text: #ffb74d;
+
+    --app-danger-bg: rgba(198,40,40,.15);
+    --app-danger-text: #ef9a9a;
+
+    --app-info-bg: rgba(21,101,192,.15);
+    --app-info-text: #90caf9;
+
+    --app-purple-bg: rgba(142,36,170,.15);
+    --app-purple-text: #ce93d8;
+
+    --app-shadow:
+        0 1px 3px rgba(0,0,0,0.4);
+}
+
+
+/* =========================================================
+   CARDS
+========================================================= */
+
+.app-admin-card {
+
+    background: var(--app-card-bg);
+
+    border: 1px solid var(--app-card-border);
+
+    border-radius: var(--app-radius);
+
+    padding: 18px;
+
+    box-shadow: var(--app-shadow);
+
+    color: var(--app-text);
+}
+
+
+/* =========================================================
+   SUMMARY GRID
+========================================================= */
+
+.app-summary-grid {
+
+    display: flex;
+
+    flex-wrap: wrap;
+
+    gap: 14px;
+
+    margin-top: 10px;
+}
+
+
+.app-summary-box {
+
+    min-width: 220px;
+
+    padding: 16px 18px;
+
+    border-radius: var(--app-radius);
+
+    background: var(--app-card-bg);
+
+    border: 1px solid var(--app-card-border);
+
+    box-shadow: var(--app-shadow);
+}
+
+
+.app-summary-title {
+
+    font-size: 13px;
+
+    color: var(--app-text-muted);
+
+    margin-bottom: 6px;
+}
+
+
+.app-summary-value {
+
+    font-size: 15px;
+
+    font-weight: 700;
+}
+
+
+/* =========================================================
+   BADGES
+========================================================= */
+
+.app-badge {
+
+    display: inline-flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    padding: 5px 12px;
+
+    border-radius: var(--app-badge-radius);
+
+    font-size: 12px;
+
+    font-weight: 700;
+
+    white-space: nowrap;
+}
+
+
+.app-badge-success {
+
+    background: var(--app-success-bg);
+
+    color: var(--app-success-text);
+}
+
+
+.app-badge-warning {
+
+    background: var(--app-warning-bg);
+
+    color: var(--app-warning-text);
+}
+
+
+.app-badge-danger {
+
+    background: var(--app-danger-bg);
+
+    color: var(--app-danger-text);
+}
+
+
+.app-badge-info {
+
+    background: var(--app-info-bg);
+
+    color: var(--app-info-text);
+}
+
+
+.app-badge-purple {
+
+    background: var(--app-purple-bg);
+
+    color: var(--app-purple-text);
+}
+
+
+/* =========================================================
+   MOTIVATION
+========================================================= */
+
+.app-motivation-wrapper {
+
+    max-width: 1000px;
+}
+
+
+.app-motivation-header {
+
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+
+    flex-wrap: wrap;
+
+    gap: 10px;
+
+    margin-bottom: 12px;
+}
+
+
+.app-motivation-body {
+
+    max-height: 420px;
+
+    overflow-y: auto;
+
+    line-height: 2.1;
+
+    direction: rtl;
+
+    text-align: right;
+
+    white-space: pre-line;
+
+    padding: 22px;
+
+    background: var(--app-muted-bg);
+
+    border: 1px solid var(--app-card-border);
+
+    border-radius: var(--app-radius);
+
+    color: var(--app-text);
+
+    font-size: 14px;
+}
+
+
+/* =========================================================
+   POSTES
+========================================================= */
+
+.app-poste-list {
+
+    max-width: 900px;
+}
+
+
+.app-poste-item {
+
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+
+    gap: 12px;
+
+    flex-wrap: wrap;
+
+    padding: 14px 16px;
+
+    margin-bottom: 10px;
+
+    border-radius: var(--app-radius);
+
+    background: var(--app-card-bg);
+
+    border: 1px solid var(--app-card-border);
+
+    box-shadow: var(--app-shadow);
+}
+
+
+.app-poste-title {
+
+    font-weight: 600;
+
+    color: var(--app-text);
+
+    line-height: 1.7;
+}
+
+
+/* =========================================================
+   CANDIDATE OVERVIEW
+========================================================= */
+
+.app-candidate-name {
+
+    font-size: 18px;
+
+    font-weight: 700;
+
+    margin-bottom: 10px;
+}
+
+
+.app-candidate-meta {
+
+    line-height: 2;
+
+    color: var(--app-text);
+}
+

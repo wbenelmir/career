@@ -132,3 +132,30 @@ class InterviewSchedule(models.Model):
             raise ValidationError({
                 'interview_date': "لا يمكن برمجة مقابلة بتاريخ ووقت في الماضي."
             })
+def save(self, *args, **kwargs):
+
+    is_new = self.pk is None
+
+    super().save(*args, **kwargs)
+
+    application = self.application
+
+    if (
+        is_new
+        and application.status
+        == Application.Status.PRESELECTED
+    ):
+
+        application.set_status(
+            Application.Status.INTERVIEW_SCHEDULED
+        )
+
+        ApplicationTracking.objects.create(
+            application=application,
+            status=Application.Status.INTERVIEW_SCHEDULED,
+            note=(
+                "تمت برمجة مقابلة خاصة بهذا الطلب."
+            ),
+            changed_by=self.created_by,
+            is_visible_to_candidate=True,
+        )

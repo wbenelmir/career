@@ -21,6 +21,7 @@ from reportlab.lib.utils import ImageReader
 from locations.models import Commune
 from root.models import Poste
 from documents.models import ApplicationDocument
+from tracking.models import ApplicationTracking
 
 from .models import ApplicationChoice
 from .forms import ApplicationForm, CandidateProfileForm, MotivationForm
@@ -31,6 +32,7 @@ from notifications.tasks import (
     send_application_submitted_email_task,
     send_admin_new_application_email_task,
 )
+from .services import ApplicationWorkflowService
 
 def _get_selected_postes_from_session(request):
     ids = request.session.get("selected_poste_ids", [])
@@ -473,9 +475,22 @@ def upload_documents(request):
         request=request
     )
 
-    if application.status != Application.Status.DRAFT:
-        messages.warning(request, "لا يمكن تعديل الوثائق بعد إرسال الطلب.")
-        return redirect("applications:start_application")
+    allowed_statuses = [
+        Application.Status.DRAFT,
+        Application.Status.INCOMPLETE,
+    ]
+
+    if application.status not in allowed_statuses:
+
+        messages.warning(
+            request,
+            "لا يمكن تعديل الوثائق في الحالة الحالية."
+        )
+
+        return redirect(
+            "tracking:tracking_result",
+            tracking_code=application.tracking_code,
+        )
 
     request.session["draft_application_id"] = application.id
 
@@ -702,11 +717,31 @@ def submit_application(request):
 
         return redirect("applications:review_application")
 
-    application.set_status(
-        Application.Status.SUBMITTED,
-        changed_by=None,
-        note="Application submitted successfully.",
-        visible_to_candidate=True,
+    if application.status == Application.Status.INCOMPLETE:
+
+        unresolved_requests = (
+            application.completion_requests.filter(
+                is_resolved=False
+            )
+        )
+
+        unresolved_requests.update(
+            is_resolved=True,
+            resolved_at=timezone.now(),
+        )
+
+        ApplicationTracking.objects.create(
+            application=application,
+            status=Application.Status.SUBMITTED,
+            note=(
+                "تمت إعادة إرسال الملف بعد استكمال "
+                "الوثائق أو المعلومات المطلوبة."
+            ),
+            is_visible_to_candidate=True,
+        )
+
+    ApplicationWorkflowService.submit_application(
+        application
     )
 
     base_url = request.build_absolute_uri("/").rstrip("/")

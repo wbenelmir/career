@@ -4,7 +4,7 @@ from django.db import models, transaction
 from django.utils import timezone
 from django.utils.crypto import get_random_string
 from django.core.exceptions import ValidationError
-
+from django.conf import settings
 
 class CandidateProfile(models.Model):
     GENDER_CHOICES = [
@@ -115,6 +115,19 @@ class Application(models.Model):
 
     motivation_text = models.TextField(verbose_name="Motivation Letter", blank=True)
 
+    evaluation_score = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        verbose_name="علامة التقييم",
+    )
+
+    evaluation_comment = models.TextField(
+        blank=True,
+        verbose_name="تعليق التقييم",
+    )
+
     submitted_at = models.DateTimeField(blank=True, null=True)
     reviewed_at = models.DateTimeField(blank=True, null=True)
     preselected_at = models.DateTimeField(blank=True, null=True)
@@ -129,6 +142,29 @@ class Application(models.Model):
         ordering = ['-created_at']
         verbose_name = "طلب ترشح"
         verbose_name_plural = "طلبات الترشح"
+
+        permissions = [
+
+            (
+                "can_review_applications",
+                "Can review applications",
+            ),
+
+            (
+                "can_score_applications",
+                "Can score applications",
+            ),
+
+            (
+                "can_manage_interviews",
+                "Can manage interviews",
+            ),
+
+            (
+                "can_finalize_applications",
+                "Can finalize applications",
+            ),
+        ]
 
     def __str__(self):
         return self.application_number or f"Application #{self.pk}"
@@ -217,32 +253,172 @@ class Application(models.Model):
     # STATUS LOGIC
     # ========================
 
+    FINAL_STATUSES = [
+        Status.FINAL_ACCEPTED,
+        Status.FINAL_REJECTED,
+    ]
+
+    TRANSITIONS = {
+
+        Status.DRAFT: [
+            Status.SUBMITTED,
+        ],
+
+        Status.SUBMITTED: [
+            Status.UNDER_REVIEW,
+            Status.INCOMPLETE,
+            Status.PRELIMINARY_REJECTED,
+        ],
+
+        Status.INCOMPLETE: [
+            Status.SUBMITTED,
+            Status.PRELIMINARY_REJECTED,
+        ],
+
+        Status.UNDER_REVIEW: [
+            Status.PRESELECTED,
+            Status.PRELIMINARY_REJECTED,
+        ],
+
+        Status.PRESELECTED: [
+            Status.INTERVIEW_SCHEDULED,
+            Status.FINAL_ACCEPTED,
+            Status.WAITING_LIST,
+            Status.FINAL_REJECTED,
+        ],
+
+        Status.INTERVIEW_SCHEDULED: [
+            Status.INTERVIEW_COMPLETED,
+            Status.NO_SHOW,
+        ],
+
+        Status.INTERVIEW_COMPLETED: [
+            Status.FINAL_ACCEPTED,
+            Status.FINAL_REJECTED,
+            Status.WAITING_LIST,
+        ],
+
+        Status.NO_SHOW: [
+            Status.FINAL_REJECTED,
+        ],
+
+        Status.WAITING_LIST: [
+            Status.FINAL_ACCEPTED,
+            Status.FINAL_REJECTED,
+        ],
+    }
+
+
+    def is_finalized(self):
+        return self.status in self.FINAL_STATUSES
+
+
+    def is_ready_for_submission(self):
+
+        return (
+            bool(self.motivation_text)
+            and self.has_all_required_documents()
+            and self.is_eligible
+        )
+
+
+    def is_ready_for_review(self):
+
+        return (
+            self.status == self.Status.SUBMITTED
+            and self.is_ready_for_submission()
+        )
+
+
+    def can_be_preselected(self):
+
+        return (
+            self.status == self.Status.UNDER_REVIEW
+            and self.is_ready_for_submission()
+        )
+
+
     def can_transition_to(self, new_status):
-        allowed = {
-            self.Status.DRAFT: [self.Status.SUBMITTED],
-            self.Status.SUBMITTED: [self.Status.UNDER_REVIEW, self.Status.INCOMPLETE, self.Status.PRELIMINARY_REJECTED, self.Status.PRESELECTED],
-        }
-        return new_status in allowed.get(self.status, [])
+
+        if self.is_finalized():
+            return False
+
+        allowed = self.TRANSITIONS.get(
+            self.status,
+            []
+        )
+
+        return new_status in allowed
+
 
     @transaction.atomic
-    def set_status(self, new_status, changed_by=None, note=None, visible_to_candidate=True):
+    def set_status(
+        self,
+        new_status,
+        changed_by=None,
+        note=None,
+        visible_to_candidate=True,
+    ):
+
         if new_status == self.status:
             return self
 
+        if self.is_finalized():
+            raise ValidationError(
+                "لا يمكن تعديل طلب نهائي."
+            )
+
         if not self.can_transition_to(new_status):
-            raise ValidationError("Invalid status transition.")
+            raise ValidationError(
+                f"لا يمكن الانتقال من {self.get_status_display()} إلى الحالة المطلوبة."
+            )
 
-        if new_status == self.Status.SUBMITTED:
-            if not self.motivation_text:
-                raise ValidationError("Motivation is required before submission.")
+        # ========================
+        # READINESS VALIDATION
+        # ========================
 
-            if not self.has_all_required_documents():
-                raise ValidationError("Missing required documents.")
+        if new_status in [
+            self.Status.SUBMITTED,
+            self.Status.UNDER_REVIEW,
+            self.Status.PRESELECTED,
+            self.Status.INTERVIEW_SCHEDULED,
+            self.Status.FINAL_ACCEPTED,
+        ]:
+
+            if not self.is_ready_for_submission():
+
+                raise ValidationError(
+                    "الطلب غير مكتمل أو غير مؤهل."
+                )
+
+        # ========================
+        # STATUS UPDATE
+        # ========================
 
         self.status = new_status
 
+        now = timezone.now()
+
         if new_status == self.Status.SUBMITTED:
-            self.submitted_at = timezone.now()
+            self.submitted_at = now
+
+        elif new_status == self.Status.UNDER_REVIEW:
+            self.reviewed_at = now
+
+        elif new_status == self.Status.PRESELECTED:
+            self.preselected_at = now
+
+        elif new_status == self.Status.INTERVIEW_SCHEDULED:
+            self.interview_scheduled_at = now
+
+        elif new_status == self.Status.INTERVIEW_COMPLETED:
+            self.interview_completed_at = now
+
+        elif new_status in [
+            self.Status.FINAL_ACCEPTED,
+            self.Status.FINAL_REJECTED,
+        ]:
+            self.final_decision_at = now
 
         self.full_clean()
         self.save()
@@ -283,3 +459,98 @@ class ApplicationChoice(models.Model):
 
     def __str__(self):
         return f"{self.application} - {self.poste} (#{self.priority})"
+    
+class CompletionRequest(models.Model):
+
+    application = models.ForeignKey(
+        Application,
+        on_delete=models.CASCADE,
+        related_name="completion_requests",
+        verbose_name="الطلب",
+    )
+
+    message = models.TextField(
+        verbose_name="الوثائق أو المعلومات المطلوبة",
+    )
+
+    deadline = models.DateTimeField(
+        verbose_name="آخر أجل للاستكمال",
+    )
+
+    is_resolved = models.BooleanField(
+        default=False,
+        verbose_name="تم الاستكمال",
+    )
+
+    resolved_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name="تاريخ الاستكمال",
+    )
+
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        verbose_name="تم الإنشاء بواسطة",
+    )
+
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+    )
+
+    class Meta:
+
+        ordering = ["-created_at"]
+
+        verbose_name = "طلب استكمال"
+
+        verbose_name_plural = "طلبات الاستكمال"
+
+    def __str__(self):
+
+        return (
+            f"طلب استكمال - "
+            f"{self.application.application_number}"
+        )
+
+class EvaluationNote(models.Model):
+
+    application = models.ForeignKey(
+        Application,
+        on_delete=models.CASCADE,
+        related_name="evaluation_notes",
+        verbose_name="الطلب",
+    )
+
+    note = models.TextField(
+        verbose_name="ملاحظة التقييم",
+    )
+
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        verbose_name="تمت بواسطة",
+    )
+
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+    )
+
+    class Meta:
+
+        ordering = ["-created_at"]
+
+        verbose_name = "ملاحظة تقييم"
+
+        verbose_name_plural = "ملاحظات التقييم"
+
+    def __str__(self):
+
+        return (
+            f"Evaluation Note - "
+            f"{self.application.application_number}"
+        )

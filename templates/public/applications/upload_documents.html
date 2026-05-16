@@ -12,6 +12,90 @@
 
         {% include "includes/applications/stepper.html" with current_step=4 %}
 
+        {% if application.status == 'incomplete' %}
+
+        <div class="alert alert-warning border-0 rounded-4 shadow-sm mb-4 completion-banner">
+
+            <div class="d-flex align-items-start gap-3">
+
+                <div class="completion-banner-icon">
+
+                    <i class="bi bi-exclamation-triangle-fill"></i>
+
+                </div>
+
+                <div class="flex-grow-1">
+
+                    <h5 class="fw-bold mb-3">
+                        استكمال الملف مطلوب
+                    </h5>
+
+                    {% with requests=application.completion_requests.all %}
+                        {% for completion in requests %}
+
+                            {% if not completion.is_resolved %}
+
+                                <div class="completion-request-item mb-3">
+
+                                    <div class="small text-danger mb-2">
+
+                                        <strong>
+                                            آخر أجل:
+                                        </strong>
+
+                                        {% now "U" as now_timestamp %}
+                                        {% with deadline_ts=completion.deadline|date:"U" %}
+
+                                            {% if deadline_ts < now_timestamp %}
+
+                                                <span class="text-danger fw-bold">
+                                                    انتهت مهلة الاستكمال:
+                                                    {{ completion.deadline|date:"Y/m/d H:i" }}
+                                                </span>
+
+                                            {% else %}
+
+                                                <span class="text-danger">
+
+                                                    آخر أجل للاستكمال:
+                                                    {{ completion.deadline|date:"Y/m/d H:i" }}
+
+                                                </span>
+
+                                            {% endif %}
+
+                                        {% endwith %}
+
+                                    </div>
+
+                                    <div class="completion-request-message">
+
+                                        {{ completion.message }}
+
+                                    </div>
+
+                                </div>
+
+                            {% endif %}
+
+                        {% endfor %}
+                    {% endwith %}
+
+                    <div class="small text-muted mt-3">
+
+                        يرجى رفع الوثائق أو تصحيح المعلومات المطلوبة
+                        ثم إعادة إرسال الطلب.
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        {% endif %}
+
         <div class="row g-4 mt-1">
 
             <div class="col-lg-8">
@@ -65,10 +149,23 @@
                                 {% for requirement in requirements %}
                                     <div class="col-12">
                                         <div
-                                            class="border rounded-4 p-3 p-md-4 bg-white shadow-sm upload-doc-card {% if requirement.is_required and not requirement.current_doc or requirement.is_required and requirement.current_doc and not requirement.current_doc.is_uploaded %}missing-required-card{% endif %}"
-                                            data-doc-required="{% if requirement.is_required %}true{% else %}false{% endif %}"
-                                            data-doc-uploaded="{% if requirement.current_doc and requirement.current_doc.is_uploaded %}true{% else %}false{% endif %}"
-                                            data-card-id="{{ requirement.document_type.id }}"
+                                            class="
+                                                border
+                                                rounded-4
+                                                p-3
+                                                p-md-4
+                                                bg-white
+                                                shadow-sm
+                                                upload-doc-card
+
+                                                {% if requirement.is_required and not requirement.current_doc or requirement.is_required and requirement.current_doc and not requirement.current_doc.is_uploaded %}
+                                                    missing-required-card
+                                                {% endif %}
+
+                                                {% if application.status == 'incomplete' and requirement.is_required and not requirement.current_doc or application.status == 'incomplete' and requirement.is_required and requirement.current_doc and not requirement.current_doc.is_uploaded %}
+                                                    completion-required-highlight
+                                                {% endif %}
+                                            "
                                         >
                                             <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-3">
                                                 <div>
@@ -442,7 +539,33 @@
     border-color: #f0c36d !important;
     background: #fffdf8;
 }
+.completion-required-highlight {
+    border-width: 2px !important;
+    border-color: #dc3545 !important;
+    background:
+        linear-gradient(
+            0deg,
+            rgba(220,53,69,.03),
+            rgba(220,53,69,.03)
+        ),
+        #fff;
+    position: relative;
+}
 
+.completion-required-highlight::before {
+    content: "مطلوب للاستكمال";
+    position: absolute;
+    top: -12px;
+    left: 18px;
+    background: #dc3545;
+    color: #fff;
+    font-size: .72rem;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 999px;
+    box-shadow: 0 4px 12px rgba(220,53,69,.18);
+    z-index: 2;
+}
 .upload-single-btn[disabled] {
     opacity: 0.7;
     cursor: not-allowed;
@@ -587,6 +710,26 @@
 .section-subtitle {
     max-width: 650px;
 }
+.completion-banner {
+    line-height: 1.95;
+}
+
+.completion-banner-icon {
+    font-size: 1.5rem;
+    color: #dc3545;
+}
+
+.completion-request-item {
+    background: rgba(255,255,255,.65);
+    border-radius: 14px;
+    padding: 14px;
+}
+
+.completion-request-message {
+    white-space: pre-line;
+    color: #495057;
+}
+
 @keyframes fadeSlideIn {
     from {
         opacity: 0;

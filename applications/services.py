@@ -1,90 +1,120 @@
-# applications/services.py
-
 from django.core.exceptions import ValidationError
+from django.utils import timezone
+
 from .models import Application
 
 
-class ApplicationService:
-    @staticmethod
-    def submit_application(application, changed_by=None, note="تم إرسال الطلب بنجاح."):
-        if application.status != application.Status.DRAFT:
-            raise ValidationError("لا يمكن إرسال طلب ليس في حالة مسودة.")
+class ApplicationWorkflowService:
 
-        # Check if the candidate already has an active application before allowing submission
-        if ApplicationService.check_candidate_has_active_application(application.candidate):
-            raise ValidationError("لديك طلب نشط بالفعل.")
-    
-        return application.set_status(
-            application.Status.SUBMITTED,
+    @staticmethod
+    def transition(
+        application,
+        new_status,
+        changed_by=None,
+        note=None,
+        visible_to_candidate=True,
+    ):
+
+        application.set_status(
+            new_status=new_status,
             changed_by=changed_by,
             note=note,
+            visible_to_candidate=visible_to_candidate,
+        )
+
+        return application
+
+    @staticmethod
+    def submit_application(application):
+
+        if not application.is_ready_for_submission():
+            raise ValidationError(
+                "الطلب غير جاهز للإرسال."
+            )
+
+        return ApplicationWorkflowService.transition(
+            application,
+            Application.Status.SUBMITTED,
+        )
+
+    @staticmethod
+    def mark_under_review(application, user=None):
+
+        return ApplicationWorkflowService.transition(
+            application,
+            Application.Status.UNDER_REVIEW,
+            changed_by=user,
+        )
+
+    @staticmethod
+    def mark_incomplete(application, user=None):
+
+        return ApplicationWorkflowService.transition(
+            application,
+            Application.Status.INCOMPLETE,
+            changed_by=user,
             visible_to_candidate=True,
         )
 
     @staticmethod
-    def mark_under_review(application, changed_by=None, note="تم تحويل الطلب إلى قيد الدراسة."):
-        return application.set_status(
-            application.Status.UNDER_REVIEW,
-            changed_by=changed_by,
-            note=note,
-            visible_to_candidate=False,
-        )
+    def preselect(application, user=None):
 
-    @staticmethod
-    def mark_incomplete(application, changed_by=None, note="الملف ناقص ويحتاج إلى استكمال."):
-        return application.set_status(
-            application.Status.INCOMPLETE,
-            changed_by=changed_by,
-            note=note,
+        if not application.can_be_preselected():
+            raise ValidationError(
+                "الطلب غير جاهز للقبول الأولي."
+            )
+
+        return ApplicationWorkflowService.transition(
+            application,
+            Application.Status.PRESELECTED,
+            changed_by=user,
             visible_to_candidate=True,
         )
 
     @staticmethod
-    def preselect(application, changed_by=None, note="تم قبول الطلب أوليًا."):
-        return application.set_status(
-            application.Status.PRESELECTED,
-            changed_by=changed_by,
-            note=note,
+    def accept_final(application, user=None):
+
+        if application.evaluation_score is None:
+
+            raise ValidationError(
+                "لا يمكن إصدار قرار نهائي دون تقييم."
+            )
+
+        return ApplicationWorkflowService.transition(
+            application,
+            Application.Status.FINAL_ACCEPTED,
+            changed_by=user,
             visible_to_candidate=True,
         )
 
     @staticmethod
-    def reject_preliminary(application, rejection_reason, changed_by=None, note="تم رفض الطلب أوليًا."):
-        application.rejection_reason = rejection_reason
-        return application.set_status(
-            application.Status.PRELIMINARY_REJECTED,
-            changed_by=changed_by,
-            note=note,
+    def reject_preliminary(
+        application,
+        reason,
+        user=None,
+    ):
+
+        application.rejection_reason = reason
+
+        return ApplicationWorkflowService.transition(
+            application,
+            Application.Status.PRELIMINARY_REJECTED,
+            changed_by=user,
             visible_to_candidate=True,
         )
 
     @staticmethod
-    def accept_final(application, changed_by=None, note="تم قبول الطلب نهائيًا."):
-        return application.set_status(
-            application.Status.FINAL_ACCEPTED,
-            changed_by=changed_by,
-            note=note,
-            visible_to_candidate=True,
-        )
+    def reject_final(
+        application,
+        reason,
+        user=None,
+    ):
 
-    @staticmethod
-    def reject_final(application, rejection_reason, changed_by=None, note="تم رفض الطلب نهائيًا."):
-        application.rejection_reason = rejection_reason
-        return application.set_status(
-            application.Status.FINAL_REJECTED,
-            changed_by=changed_by,
-            note=note,
+        application.rejection_reason = reason
+
+        return ApplicationWorkflowService.transition(
+            application,
+            Application.Status.FINAL_REJECTED,
+            changed_by=user,
             visible_to_candidate=True,
         )
-    @staticmethod
-    def check_candidate_has_active_application(candidate):
-        return Application.objects.filter(
-            candidate=candidate,
-            status__in=[
-                Application.Status.SUBMITTED,
-                Application.Status.UNDER_REVIEW,
-                Application.Status.PRESELECTED,
-                Application.Status.INTERVIEW_SCHEDULED,
-                Application.Status.INTERVIEW_COMPLETED,
-            ]
-        ).exists()
