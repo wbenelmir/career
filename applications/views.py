@@ -21,7 +21,6 @@ from reportlab.lib.utils import ImageReader
 from locations.models import Commune
 from root.models import Poste
 from documents.models import ApplicationDocument
-from tracking.models import ApplicationTracking
 
 from .models import ApplicationChoice
 from .forms import ApplicationForm, CandidateProfileForm, MotivationForm
@@ -111,20 +110,87 @@ def _get_draft_application_from_session(request):
         Application.objects
         .select_related("candidate", "poste")
         .prefetch_related("documents__document_type")
-        .filter(id=application_id)
+        .filter(
+                    id=application_id,
+                    status__in=[
+                        Application.Status.DRAFT,
+                        Application.Status.INCOMPLETE,
+                    ]
+                )
         .first()
     )
 
 
 def _get_or_create_draft_application(poste, candidate, request=None):
-    try:
-        application, created = Application.objects.get_or_create(
-            poste=poste,
-            candidate=candidate,
-            defaults={"status": Application.Status.DRAFT}
+    if request:
+
+        application_id = request.session.get(
+            "draft_application_id"
         )
+
+        if application_id:
+
+            existing_application = (
+                Application.objects.filter(
+                    id=application_id,
+                    status__in=[
+                        Application.Status.DRAFT,
+                        Application.Status.INCOMPLETE,
+                    ]
+                )
+                .first()
+            )
+
+            if (
+                existing_application
+                and existing_application.poste_id == poste.id
+                and existing_application.candidate_id == candidate.id
+            ):
+                return existing_application
+        
+    try:
+        application = (
+            Application.objects.filter(
+                poste=poste,
+                candidate=candidate,
+                status__in=[
+                    Application.Status.DRAFT,
+                    Application.Status.INCOMPLETE,
+                ]
+            )
+            .order_by("-created_at")
+            .first()
+        )
+
+        created = False
+
+        if not application:
+
+            application = Application.objects.create(
+                poste=poste,
+                candidate=candidate,
+                status=Application.Status.DRAFT,
+            )
+
+            created = True
     except IntegrityError:
-        application = Application.objects.get(poste=poste, candidate=candidate)
+
+        application = (
+            Application.objects.filter(
+                poste=poste,
+                candidate=candidate,
+                status__in=[
+                    Application.Status.DRAFT,
+                    Application.Status.INCOMPLETE,
+                ]
+            )
+            .order_by("-created_at")
+            .first()
+        )
+
+        if not application:
+            raise
+
         created = False
 
     # If we just created the application and have a request context, we can initialize the application choices based on the selected postes in the session
@@ -143,11 +209,32 @@ def _get_or_create_draft_application(poste, candidate, request=None):
 
     return application
 
-def _clear_application_session(request):
-    request.session.pop("selected_poste_id", None)
-    request.session.pop("selected_poste_ids", None)
-    request.session.pop("candidate_id", None)
-    request.session.pop("draft_application_id", None)
+def _clear_application_session(
+    request,
+    preserve_candidate=False
+):
+
+    request.session.pop(
+        "selected_poste_id",
+        None
+    )
+
+    request.session.pop(
+        "selected_poste_ids",
+        None
+    )
+
+    request.session.pop(
+        "draft_application_id",
+        None
+    )
+
+    if not preserve_candidate:
+
+        request.session.pop(
+            "candidate_id",
+            None
+        )
 
 
 def _build_uploaded_documents(application):
@@ -293,9 +380,38 @@ def start_application(request, slug=None):
             request.session["selected_poste_ids"] = selected_postes
             request.session["selected_poste_id"] = poste_1.id
 
-            # reset flow
-            request.session.pop("candidate_id", None)
-            request.session.pop("draft_application_id", None)
+            existing_application_id = request.session.get(
+                "draft_application_id"
+            )
+
+            if existing_application_id:
+
+                existing_application = (
+                    Application.objects.filter(
+                        id=existing_application_id
+                    ).first()
+                )
+
+                if (
+                    existing_application
+                    and existing_application.status
+                    in [
+                        Application.Status.SUBMITTED,
+                        Application.Status.UNDER_REVIEW,
+                        Application.Status.PRESELECTED,
+                        Application.Status.INTERVIEW_SCHEDULED,
+                        Application.Status.INTERVIEW_COMPLETED,
+                    ]
+                ):
+                    request.session.pop(
+                        "draft_application_id",
+                        None
+                    )
+
+                    request.session.pop(
+                        "candidate_id",
+                        None
+                    )
 
             return redirect("applications:candidate_information")
 
@@ -348,7 +464,14 @@ def candidate_information(request):
     # POST
     # =========================
     if request.method == "POST":
-        form = CandidateProfileForm(request.POST)
+        existing_candidate = (
+            _get_candidate_from_session(request)
+        )
+
+        form = CandidateProfileForm(
+            request.POST,
+            instance=existing_candidate
+        )
 
         if form.is_valid():
             national_id_number = form.cleaned_data.get("national_id_number")
@@ -356,16 +479,54 @@ def candidate_information(request):
             # =========================
             # CHECK ACTIVE APPLICATION
             # =========================
-            active_applications = Application.objects.select_related("candidate").filter(
-                candidate__national_id_number=national_id_number,
-                status__in=[
-                    Application.Status.SUBMITTED,
-                    Application.Status.UNDER_REVIEW,
-                    Application.Status.PRESELECTED,
-                    Application.Status.INTERVIEW_SCHEDULED,
-                    Application.Status.INTERVIEW_COMPLETED,
-                ]
+            current_application = (
+                _get_draft_application_from_session(
+                    request
+                )
             )
+            active_applications = (
+                Application.objects
+                .select_related("candidate")
+            )
+
+            if existing_candidate:
+
+                active_applications = (
+                    active_applications.filter(
+                        candidate=existing_candidate
+                    )
+                )
+
+            else:
+
+                active_applications = (
+                    active_applications.filter(
+                        candidate__national_id_number=
+                        national_id_number
+                    )
+                )
+
+            active_applications = (
+                active_applications.filter(
+                    poste=selected_poste,
+                    status__in=[
+                        Application.Status.SUBMITTED,
+                        Application.Status.UNDER_REVIEW,
+                        Application.Status.PRESELECTED,
+                        Application.Status.INTERVIEW_SCHEDULED,
+                        Application.Status.INTERVIEW_COMPLETED,
+                        Application.Status.INCOMPLETE,
+                    ]
+                )
+            )
+
+            if current_application:
+
+                active_applications = (
+                    active_applications.exclude(
+                        id=current_application.id
+                    )
+                )
 
             if active_applications.exists():
                 active_application = active_applications.first()
@@ -388,15 +549,28 @@ def candidate_information(request):
                 candidate = form.save()
 
             request.session["candidate_id"] = candidate.id
-            request.session.pop("draft_application_id", None)
 
             return redirect("applications:motivation_step")
 
     # =========================
     # GET
     # =========================
+
     else:
-        form = CandidateProfileForm()
+
+        existing_candidate = _get_candidate_from_session(
+            request
+        )
+
+        if existing_candidate:
+
+            form = CandidateProfileForm(
+                instance=existing_candidate
+            )
+
+        else:
+
+            form = CandidateProfileForm()
 
     # =========================
     # COMMUNE LOGIC
@@ -435,6 +609,7 @@ def motivation_step(request):
         candidate=candidate,
         request=request
     )
+    request.session["draft_application_id"] = application.id
 
     if request.method == "POST":
         form = MotivationForm(request.POST)
@@ -582,15 +757,43 @@ def upload_single_document(request):
         request=request
     )
 
-    if application.status != Application.Status.DRAFT:
+    allowed_statuses = [
+        Application.Status.DRAFT,
+        Application.Status.INCOMPLETE,
+    ]
+
+    if application.status not in allowed_statuses:
+
         return JsonResponse(
-            {"success": False, "message": "لا يمكن تعديل الوثائق بعد إرسال الطلب."},
+            {
+                "success": False,
+                "message": "لا يمكن تعديل الوثائق في الحالة الحالية."
+            },
             status=400
         )
 
     request.session["draft_application_id"] = application.id
 
-    document_type_id = request.POST.get("document_type_id")
+    document_type_id = request.POST.get(
+        "document_type_id"
+    )
+
+    try:
+
+        document_type_id = int(
+            document_type_id
+        )
+
+    except (TypeError, ValueError):
+
+        return JsonResponse(
+            {
+                "success": False,
+                "message": "نوع الوثيقة غير صالح."
+            },
+            status=400
+        )
+
     uploaded_file = request.FILES.get("file")
 
     if not document_type_id:
@@ -657,7 +860,15 @@ def upload_single_document(request):
 def review_application(request):
     application = _get_draft_application_from_session(request)
 
-    if not application or application.status != Application.Status.DRAFT:
+    allowed_statuses = [
+        Application.Status.DRAFT,
+        Application.Status.INCOMPLETE,
+    ]
+
+    if (
+        not application
+        or application.status not in allowed_statuses
+    ):
         messages.warning(request, "لا يوجد ملف جاهز للمراجعة.")
         return redirect("applications:start_application")
 
@@ -690,7 +901,12 @@ def submit_application(request):
         messages.warning(request, "لا يوجد طلب جاهز للإرسال.")
         return redirect("applications:start_application")
 
-    if application.status != Application.Status.DRAFT:
+    allowed_statuses = [
+        Application.Status.DRAFT,
+        Application.Status.INCOMPLETE,
+    ]
+
+    if application.status not in allowed_statuses:
         messages.warning(request, "تم إرسال هذا الطلب مسبقًا.")
         return redirect("applications:start_application")
 
@@ -717,39 +933,58 @@ def submit_application(request):
 
         return redirect("applications:review_application")
 
-    if application.status == Application.Status.INCOMPLETE:
+    with transaction.atomic():
 
-        unresolved_requests = (
-            application.completion_requests.filter(
-                is_resolved=False
+        if application.status == Application.Status.INCOMPLETE:
+
+            unresolved_requests = (
+                application.completion_requests.filter(
+                    is_resolved=False
+                )
+            )
+
+            unresolved_requests.update(
+                is_resolved=True,
+                resolved_at=timezone.now(),
+            )
+
+            ApplicationWorkflowService.transition(
+                application=application,
+                new_status=Application.Status.SUBMITTED,
+                note=(
+                    "تمت إعادة إرسال الملف بعد "
+                    "استكمال الوثائق المطلوبة."
+                ),
+                visible_to_candidate=True,
+            )
+
+        else:
+
+            ApplicationWorkflowService.submit_application(
+                application
+            )
+
+
+        base_url = request.build_absolute_uri("/").rstrip("/")
+
+        transaction.on_commit(
+            lambda: send_application_submitted_email_task.delay(
+                application.id,
+                base_url
             )
         )
 
-        unresolved_requests.update(
-            is_resolved=True,
-            resolved_at=timezone.now(),
+        transaction.on_commit(
+            lambda: send_admin_new_application_email_task.delay(
+                application.id
+            )
         )
-
-        ApplicationTracking.objects.create(
-            application=application,
-            status=Application.Status.SUBMITTED,
-            note=(
-                "تمت إعادة إرسال الملف بعد استكمال "
-                "الوثائق أو المعلومات المطلوبة."
-            ),
-            is_visible_to_candidate=True,
-        )
-
-    ApplicationWorkflowService.submit_application(
-        application
-    )
-
-    base_url = request.build_absolute_uri("/").rstrip("/")
-    send_application_submitted_email_task.delay(application.id, base_url)
-    send_admin_new_application_email_task.delay(application.id)
 
     tracking_code = application.tracking_code
-    _clear_application_session(request)
+    _clear_application_session(
+        request,
+        preserve_candidate=True
+    )
 
     return redirect("applications:application_success", tracking_code=tracking_code)
 

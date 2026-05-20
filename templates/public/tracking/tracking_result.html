@@ -43,74 +43,22 @@
                     <div class="card-body p-4">
                         <h3 class="section-title">تفسير الحالة</h3>
 
-                        {% if application.status == 'submitted' %}
-                            <div class="alert alert-info mb-0 d-flex align-items-start gap-2 tracking-alert-box">
-                                <i class="bi bi-inbox mt-1"></i>
-                                <div>تم استلام طلبكم بنجاح وهو الآن في انتظار المعالجة الإدارية.</div>
+                        <div class="alert alert-{{ application.status_color }} mb-0 d-flex align-items-start gap-2 tracking-alert-box">
+
+                            <i class="bi {{ application.status_icon }} mt-1"></i>
+
+                            <div>
+                                {{ application.status_message }}
                             </div>
-                        {% elif application.status == 'under_review' %}
-                            <div class="alert alert-primary mb-0 d-flex align-items-start gap-2 tracking-alert-box">
-                                <i class="bi bi-search mt-1"></i>
-                                <div>ملفكم قيد الدراسة حاليًا من طرف الجهة المعنية.</div>
-                            </div>
-                        {% elif application.status == 'incomplete' %}
-                            <div class="alert alert-warning mb-0 d-flex align-items-start gap-2 tracking-alert-box">
-                                <i class="bi bi-exclamation-triangle mt-1"></i>
-                                <div>ملف الترشح يحتاج إلى استكمال أو تصحيح بعض العناصر. يرجى الاطلاع على الملاحظات الظاهرة في التسلسل الزمني أدناه.</div>
-                            </div>
-                        {% elif application.status == 'preselected' %}
-                            <div class="alert alert-success mb-0 d-flex align-items-start gap-2 tracking-alert-box">
-                                <i class="bi bi-check-circle mt-1"></i>
-                                <div>تم قبول ملفكم في مرحلة الانتقاء الأولي.</div>
-                            </div>
-                        {% elif application.status == 'preliminary_rejected' %}
-                            <div class="alert alert-danger mb-0 d-flex align-items-start gap-2 tracking-alert-box">
-                                <i class="bi bi-x-circle mt-1"></i>
-                                <div>تم رفض الطلب في المرحلة الأولية.</div>
-                            </div>
-                        {% elif application.status == 'interview_scheduled' %}
-                            <div class="alert alert-info mb-0 d-flex align-items-start gap-2 tracking-alert-box">
-                                <i class="bi bi-calendar-event mt-1"></i>
-                                <div>تم إدراج ملفكم ضمن مرحلة المقابلة، يرجى متابعة التفاصيل أو الملاحظات المرتبطة بها.</div>
-                            </div>
-                        {% elif application.status == 'interview_completed' %}
-                            <div class="alert alert-primary mb-0 d-flex align-items-start gap-2 tracking-alert-box">
-                                <i class="bi bi-check2-square mt-1"></i>
-                                <div>تم تسجيل إجراء المقابلة، والملف في انتظار القرار اللاحق.</div>
-                            </div>
-                        {% elif application.status == 'no_show' %}
-                            <div class="alert alert-warning mb-0 d-flex align-items-start gap-2 tracking-alert-box">
-                                <i class="bi bi-person-x mt-1"></i>
-                                <div>تم تسجيل عدم الحضور في الموعد المحدد للمقابلة.</div>
-                            </div>
-                        {% elif application.status == 'final_accepted' %}
-                            <div class="alert alert-success mb-0 d-flex align-items-start gap-2 tracking-alert-box">
-                                <i class="bi bi-patch-check mt-1"></i>
-                                <div>نحيطكم علمًا بأنه تم قبول طلبكم نهائيًا.</div>
-                            </div>
-                        {% elif application.status == 'final_rejected' %}
-                            <div class="alert alert-danger mb-0 d-flex align-items-start gap-2 tracking-alert-box">
-                                <i class="bi bi-slash-circle mt-1"></i>
-                                <div>نحيطكم علمًا بأنه تم رفض طلبكم نهائيًا.</div>
-                            </div>
-                        {% elif application.status == 'waiting_list' %}
-                            <div class="alert alert-info mb-0 d-flex align-items-start gap-2 tracking-alert-box">
-                                <i class="bi bi-hourglass-split mt-1"></i>
-                                <div>تم إدراج طلبكم ضمن قائمة الاحتياط.</div>
-                            </div>
-                        {% else %}
-                            <div class="alert alert-secondary mb-0 d-flex align-items-start gap-2 tracking-alert-box">
-                                <i class="bi bi-info-circle mt-1"></i>
-                                <div>يمكنكم متابعة مستجدات الملف من خلال هذا الفضاء.</div>
-                            </div>
-                        {% endif %}
+
+                        </div>
                     </div>
                 </div>
 
                 {% if application.rejection_reason and application.status == 'preliminary_rejected' or application.rejection_reason and application.status == 'final_rejected' %}
                     <div class="custom-card mb-4">
                         <div class="card-body p-4">
-                            <h3 class="section-title">سبب الرفض</h3>
+                            <h3 class="section-title">سبب عدم القبول</h3>
                             <div class="alert alert-danger mb-0 rejection-box">
                                 {{ application.rejection_reason }}
                             </div>
@@ -219,6 +167,23 @@
 
                                 {% endif %}
 
+                                {% if interview_schedule.summons_file %}
+
+                                <div class="col-12 mt-3">
+
+                                    <a
+                                        href="{% url 'tracking:download_interview_summons_pdf' application.tracking_code %}"
+                                        target="_blank"
+                                        class="btn btn-primary-custom"
+                                    >
+                                        <i class="bi bi-download ms-1"></i>
+
+                                        تحميل استدعاء المقابلة
+                                    </a>
+
+                                </div>
+
+                                    {% endif %}
                             </div>
 
                         </div>
@@ -273,6 +238,16 @@
 
                         {% endfor %}
 
+                        <div class="mt-4">
+                            <a
+                                href="{% url 'tracking:resume_completion_workflow' application.tracking_code %}"
+                                class="btn btn-warning"
+                            >
+                                <i class="bi bi-upload ms-1"></i>
+
+                                استكمال الملف الآن
+                            </a>
+                        </div>
                         <div class="alert alert-light border-0 mb-0 small completion-help-box">
 
                             يرجى استكمال الوثائق أو المعلومات المطلوبة
@@ -298,8 +273,15 @@
                                         <div class="d-flex gap-3">
 
                                             <div class="timeline-marker flex-shrink-0">
-                                                <span class="timeline-marker-circle {% if forloop.last %}is-current{% endif %}">
-                                                    {{ forloop.counter }}
+                                                <span class="timeline-marker-circle 
+                                                    timeline-marker-circle bg-{{ item.status_color }}-subtle
+                                                    text-{{ item.status_color }}
+                                                    border border-{{ item.status_color }}-subtle
+                                                    {% if forloop.last %}
+                                                    timeline-current
+                                                    {% endif %}
+                                                    ">
+                                                    <i class="bi {{ item.status_icon }}"></i>
                                                 </span>
                                             </div>
 
@@ -311,39 +293,9 @@
                                                     </span>
                                                 </div>
 
-                                                {% if item.note %}
-                                                    <p class="text-muted mb-0 timeline-note-text">
-                                                        {{ item.note }}
-                                                    </p>
-                                                {% else %}
-                                                    <p class="text-muted mb-0 timeline-note-text">
-                                                        {% if item.status == 'submitted' %}
-                                                            تم تسجيل الطلب ضمن النظام بنجاح.
-                                                        {% elif item.status == 'under_review' %}
-                                                            الملف يوجد حاليًا في مرحلة الدراسة والمعالجة.
-                                                        {% elif item.status == 'incomplete' %}
-                                                            توجد عناصر تتطلب استكمالًا أو تصحيحًا.
-                                                        {% elif item.status == 'preselected' %}
-                                                            تم اجتياز مرحلة الانتقاء الأولي بنجاح.
-                                                        {% elif item.status == 'preliminary_rejected' %}
-                                                            انتهت المعالجة الأولية برفض الطلب.
-                                                        {% elif item.status == 'interview_scheduled' %}
-                                                            تم الانتقال إلى مرحلة المقابلة.
-                                                        {% elif item.status == 'interview_completed' %}
-                                                            تم تسجيل إجراء المقابلة.
-                                                        {% elif item.status == 'no_show' %}
-                                                            تم تسجيل عدم الحضور في الموعد المحدد.
-                                                        {% elif item.status == 'final_accepted' %}
-                                                            صدر القرار النهائي بالقبول.
-                                                        {% elif item.status == 'final_rejected' %}
-                                                            صدر القرار النهائي برفض الطلب.
-                                                        {% elif item.status == 'waiting_list' %}
-                                                            تم إدراج الملف ضمن قائمة الاحتياط.
-                                                        {% else %}
-                                                            تم تحديث حالة الطلب.
-                                                        {% endif %}
-                                                    </p>
-                                                {% endif %}
+                                                <p class="timeline-note-text mb-0">
+                                                    {{ item.timeline_message }}
+                                                </p>
                                             </div>
 
                                         </div>
@@ -488,6 +440,7 @@ function copyTrackingCode(button) {
 .tracking-alert-box {
     line-height: 1.9;
     border-radius: 16px;
+    white-space: pre-line;
 }
 .interview-box {
     line-height: 1.9;
@@ -495,8 +448,12 @@ function copyTrackingCode(button) {
 .rejection-box {
     line-height: 1.95;
     border-radius: 16px;
+    white-space: pre-line;
 }
-
+.timeline-current {
+    transform: scale(1.08);
+    box-shadow: 0 0 0 6px rgba(25, 135, 84, 0.12);
+}
 .timeline-marker-circle {
     width: 42px;
     height: 42px;
@@ -518,6 +475,7 @@ function copyTrackingCode(button) {
 
 .timeline-note-text {
     line-height: 1.9;
+    white-space: pre-line;
 }
 
 .tracking-code-box {

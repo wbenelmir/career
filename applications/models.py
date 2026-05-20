@@ -1,5 +1,7 @@
 # applications/models.py
 
+from turtle import circle
+
 from django.db import models, transaction
 from django.utils import timezone
 from django.utils.crypto import get_random_string
@@ -85,21 +87,55 @@ class CandidateProfile(models.Model):
 
         return False
 
-
 class Application(models.Model):
     class Status(models.TextChoices):
         DRAFT = 'draft', 'مسودة'
-        SUBMITTED = 'submitted', 'مرسل'
-        UNDER_REVIEW = 'under_review', 'قيد الدراسة'
-        INCOMPLETE = 'incomplete', 'ملف ناقص'
-        PRESELECTED = 'preselected', 'مقبول أوليًا'
-        PRELIMINARY_REJECTED = 'preliminary_rejected', 'مرفوض أوليًا'
-        INTERVIEW_SCHEDULED = 'interview_scheduled', 'تمت برمجة المقابلة'
-        INTERVIEW_COMPLETED = 'interview_completed', 'أُجريت المقابلة'
-        NO_SHOW = 'no_show', 'لم يحضر المقابلة'
-        FINAL_ACCEPTED = 'final_accepted', 'مقبول نهائيًا'
-        FINAL_REJECTED = 'final_rejected', 'مرفوض نهائيًا'
-        WAITING_LIST = 'waiting_list', 'قائمة الاحتياط'
+
+        SUBMITTED = 'submitted', 'تم استلام الطلب'
+
+        UNDER_REVIEW = 'under_review', 'قيد دراسة الملف'
+
+        INCOMPLETE = 'incomplete', 'الملف بحاجة إلى استكمال'
+
+        PRESELECTED = (
+            'preselected',
+            'تم قبول ملفكم لاجتياز مرحلة المقابلة'
+        )
+
+        PRELIMINARY_REJECTED = (
+            'preliminary_rejected',
+            'لم يتم قبول ملفكم ضمن نتائج الانتقاء الأولي'
+        )
+
+        INTERVIEW_SCHEDULED = (
+            'interview_scheduled',
+            'تم تحديد موعد المقابلة'
+        )
+
+        INTERVIEW_COMPLETED = (
+            'interview_completed',
+            'تم إجراء المقابلة'
+        )
+
+        NO_SHOW = (
+            'no_show',
+            'تم إقصاء الملف بسبب الغياب عن المقابلة'
+        )
+
+        FINAL_ACCEPTED = (
+            'final_accepted',
+            'تم إدراجكم ضمن القائمة النهائية للناجحين'
+        )
+
+        FINAL_REJECTED = (
+            'final_rejected',
+            'لم يتم اختيار ملفكم ضمن القائمة النهائية'
+        )
+
+        WAITING_LIST = (
+            'waiting_list',
+            'تم إدراج ملفكم ضمن قائمة الاحتياط'
+        )
 
     poste = models.ForeignKey('root.Poste', on_delete=models.PROTECT, related_name='applications', verbose_name="المنصب")
     candidate = models.ForeignKey(CandidateProfile, on_delete=models.CASCADE, related_name='applications', verbose_name="المترشح")
@@ -350,8 +386,6 @@ class Application(models.Model):
 
         return new_status in allowed
 
-
-    @transaction.atomic
     def set_status(
         self,
         new_status,
@@ -360,71 +394,199 @@ class Application(models.Model):
         visible_to_candidate=True,
     ):
 
-        if new_status == self.status:
-            return self
+        if new_status not in dict(self.Status.choices):
 
-        if self.is_finalized():
             raise ValidationError(
-                "لا يمكن تعديل طلب نهائي."
+                "الحالة المحددة غير صالحة."
             )
 
-        if not self.can_transition_to(new_status):
-            raise ValidationError(
-                f"لا يمكن الانتقال من {self.get_status_display()} إلى الحالة المطلوبة."
-            )
+        old_status = self.status
 
-        # ========================
-        # READINESS VALIDATION
-        # ========================
-
-        if new_status in [
-            self.Status.SUBMITTED,
-            self.Status.UNDER_REVIEW,
-            self.Status.PRESELECTED,
-            self.Status.INTERVIEW_SCHEDULED,
-            self.Status.FINAL_ACCEPTED,
-        ]:
-
-            if not self.is_ready_for_submission():
-
-                raise ValidationError(
-                    "الطلب غير مكتمل أو غير مؤهل."
-                )
-
-        # ========================
-        # STATUS UPDATE
-        # ========================
+        if old_status == new_status:
+            return
 
         self.status = new_status
 
         now = timezone.now()
 
         if new_status == self.Status.SUBMITTED:
-            self.submitted_at = now
+
+            if not self.submitted_at:
+                self.submitted_at = now
 
         elif new_status == self.Status.UNDER_REVIEW:
+
             self.reviewed_at = now
 
         elif new_status == self.Status.PRESELECTED:
+
             self.preselected_at = now
 
         elif new_status == self.Status.INTERVIEW_SCHEDULED:
+
             self.interview_scheduled_at = now
 
         elif new_status == self.Status.INTERVIEW_COMPLETED:
+
             self.interview_completed_at = now
 
         elif new_status in [
             self.Status.FINAL_ACCEPTED,
             self.Status.FINAL_REJECTED,
         ]:
+
             self.final_decision_at = now
 
-        self.full_clean()
         self.save()
 
-        return self
+    STATUS_META = {
 
+        "submitted": {
+            "icon": "bi-send-check",
+            "color": "info",
+            "message": (
+                    "تم استلام طلبكم بنجاح.\n"
+                    "المرحلة التالية: دراسة ملف الترشح "
+                    "من طرف اللجنة المختصة."
+                ),
+        },
+
+        "under_review": {
+            "icon": "bi-search",
+            "color": "primary",
+            "message": (
+                "ملف الترشح قيد الدراسة حاليًا "
+                "من طرف اللجنة المختصة."
+            ),
+        },
+
+        "incomplete": {
+            "icon": "bi-exclamation-triangle",
+            "color": "warning",
+            "message": (
+                "يتطلب ملف الترشح استكمال بعض "
+                "الوثائق أو المعلومات.\n"
+                "يرجى الاطلاع على الملاحظات "
+                "المرفقة ومتابعة استكمال الطلب."
+            ),
+        },
+
+        "preselected": {
+            "icon": "bi-check-circle",
+            "color": "success",
+            "message": (
+                "تم قبول ملفكم لاجتياز مرحلة المقابلة.\n"
+                "سيتم تحديد موعد المقابلة "
+                "وإشعاركم بذلك عبر هذا الفضاء."
+            ),
+        },
+
+        "preliminary_rejected": {
+            "icon": "bi-x-circle",
+            "color": "danger",
+            "message": (
+                "بعد استكمال دراسة ملفات الترشح، "
+                "تعذر قبول ملفكم "
+                "ضمن هذه المرحلة من عملية الانتقاء."
+            ),
+        },
+
+        "interview_scheduled": {
+            "icon": "bi-calendar-event",
+            "color": "info",
+            "message": (
+                "تم تحديد موعد لإجراء المقابلة.\n"
+                "يرجى الاطلاع على تفاصيل الموعد "
+                "والالتزام بالحضور في التاريخ المحدد."
+            ),
+        },
+
+        "interview_completed": {
+            "icon": "bi-check2-square",
+            "color": "primary",
+            "message": (
+                "تم إجراء المقابلة بنجاح.\n"
+                "ويجري حاليًا استكمال دراسة الملف "
+                "في انتظار الإعلان عن النتائج النهائية."
+            ),
+        },
+
+        "no_show": {
+            "icon": "bi-person-x",
+            "color": "warning",
+            "message": (
+                "تم إقصاء ملف الترشح "
+                "بسبب عدم الحضور للمقابلة "
+                "في الموعد المحدد."
+            ),
+        },
+
+        "final_accepted": {
+            "icon": "bi-patch-check",
+            "color": "success",
+            "message": (
+                "نهنئكم، لقد تم إدراجكم "
+                "ضمن قائمة المترشحين الناجحين.\n"
+                "يرجى متابعة الفضاء الخاص بكم، "
+                "وسيتم التواصل معكم "
+                "لاستكمال الإجراءات الإدارية اللازمة."
+            ),
+        },
+
+        "final_rejected": {
+            "icon": "bi-slash-circle",
+            "color": "danger",
+            "message": (
+                "نشكركم على اهتمامكم بالمشاركة، "
+                "غير أنه لم يتم اختيار ملفكم "
+                "ضمن القائمة النهائية "
+                "للمترشحين الناجحين."
+            ),
+        },
+
+        "waiting_list": {
+            "icon": "bi-hourglass-split",
+            "color": "secondary",
+            "message": (
+                "تم إدراج ملفكم ضمن قائمة الاحتياط.\n"
+                "وسيتم التواصل معكم "
+                "عند توفر مستجدات."
+            ),
+        },
+    }
+
+    @property
+    def status_meta(self):
+
+        return self.STATUS_META.get(
+            self.status,
+            {
+                "icon": "bi-info-circle",
+                "color": "secondary",
+                "message": (
+                    "يمكنكم متابعة تطور معالجة "
+                    "الطلب من خلال هذا الفضاء."
+                ),
+            }
+        )
+
+
+    @property
+    def status_icon(self):
+
+        return self.status_meta["icon"]
+
+
+    @property
+    def status_color(self):
+
+        return self.status_meta["color"]
+
+
+    @property
+    def status_message(self):
+
+        return self.status_meta["message"]
 
 class ApplicationChoice(models.Model):
     application = models.ForeignKey(Application, on_delete=models.CASCADE, related_name="choices", verbose_name="الطلب")

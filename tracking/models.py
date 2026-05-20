@@ -51,6 +51,43 @@ class ApplicationTracking(models.Model):
             models.Index(fields=['status']),
         ]
 
+    @property
+    def status_meta(self):
+
+        return self.application.STATUS_META.get(
+            self.status,
+            {
+                "icon": "bi-info-circle",
+                "color": "secondary",
+                "message": "تم تحديث حالة الطلب.",
+            }
+        )
+
+
+    @property
+    def status_icon(self):
+
+        return self.status_meta["icon"]
+
+
+    @property
+    def status_color(self):
+
+        return self.status_meta["color"]
+
+    @property
+    def timeline_message(self):
+
+        base_message = self.status_meta["message"]
+
+        if self.note:
+
+            return (
+                f"{base_message}"
+            )
+
+        return base_message
+
     def __str__(self):
         return f"{self.application.application_number} - {self.get_status_display()}"
 
@@ -63,7 +100,6 @@ class ApplicationTracking(models.Model):
                 raise ValidationError({
                     'status': "الحالة المحددة غير صالحة."
                 })
-
 
 class InterviewSchedule(models.Model):
     application = models.OneToOneField(
@@ -85,6 +121,13 @@ class InterviewSchedule(models.Model):
         blank=True,
         related_name='created_interviews',
         verbose_name="أُنشئت بواسطة",
+    )
+
+    summons_file = models.FileField(
+        upload_to="interview_summons/",
+        null=True,
+        blank=True,
+        verbose_name="ملف الاستدعاء",
     )
 
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="تاريخ الإنشاء")
@@ -132,30 +175,28 @@ class InterviewSchedule(models.Model):
             raise ValidationError({
                 'interview_date': "لا يمكن برمجة مقابلة بتاريخ ووقت في الماضي."
             })
-def save(self, *args, **kwargs):
+        
+    def save(self, *args, **kwargs):
 
-    is_new = self.pk is None
-
-    super().save(*args, **kwargs)
-
-    application = self.application
-
-    if (
-        is_new
-        and application.status
-        == Application.Status.PRESELECTED
-    ):
-
-        application.set_status(
-            Application.Status.INTERVIEW_SCHEDULED
+        from applications.services import (
+            ApplicationWorkflowService
         )
 
-        ApplicationTracking.objects.create(
-            application=application,
-            status=Application.Status.INTERVIEW_SCHEDULED,
-            note=(
-                "تمت برمجة مقابلة خاصة بهذا الطلب."
-            ),
-            changed_by=self.created_by,
-            is_visible_to_candidate=True,
-        )
+        is_new = self.pk is None
+
+        super().save(*args, **kwargs)
+
+        application = self.application
+
+        if (
+            is_new
+            and application.status
+            == Application.Status.PRESELECTED
+        ):
+
+            ApplicationWorkflowService.schedule_interview(
+                application=application,
+                user=self.created_by,
+            )
+
+            

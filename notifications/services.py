@@ -5,26 +5,34 @@ from django.utils.html import strip_tags
 
 from applications.utils import generate_qr_base64
 from .models import NotificationLog
+from tracking.pdf_utils import (
+    build_interview_summons_pdf,
+)
+
+from django.core.mail import send_mail
 
 class NotificationService:
     @staticmethod
     def send_email(
-        *,
+        application,
         to_email,
         subject,
         html_template_name,
         context=None,
-        from_email=None,
-        fail_silently=False,
-        application=None,
+        text_template_name=None,
+        fail_silently=True,
+        attachments=None,
     ):
         """
         Send an HTML email with automatic plain-text fallback
         and store the result in NotificationLog.
         """
         context = context or {}
-        from_email = from_email or getattr(settings, "DEFAULT_FROM_EMAIL", None)
-
+        from_email = getattr(
+            settings,
+            "DEFAULT_FROM_EMAIL",
+            None,
+        )
         try:
             html_body = render_to_string(html_template_name, context).strip()
             text_body = strip_tags(html_body).strip()
@@ -32,12 +40,24 @@ class NotificationService:
             if not html_body:
                 raise ValueError("Rendered HTML email body is empty.")
 
+
             email = EmailMultiAlternatives(
                 subject=subject,
                 body=text_body,
                 from_email=from_email,
                 to=[to_email],
             )
+
+            if attachments:
+
+                for attachment in attachments:
+
+                    email.attach(
+                        attachment["filename"],
+                        attachment["content"],
+                        attachment["mimetype"],
+                    )
+
             email.attach_alternative(html_body, "text/html")
             email.send(fail_silently=fail_silently)
 
@@ -106,6 +126,14 @@ class NotificationService:
     def send_application_status_update(application):
         subject = f"Update regarding your application #{application.application_number}"
 
+        tracking_url = (
+            NotificationService
+            ._build_tracking_url_from_base(
+                getattr(settings, "SITE_URL", ""),
+                application.tracking_code,
+            )
+        )
+
         context = {
             "application": application,
             "candidate": application.candidate,
@@ -114,6 +142,7 @@ class NotificationService:
             "tracking_code": application.tracking_code,
             "rejection_reason": application.rejection_reason,
             "admin_notes": application.admin_notes,
+            "tracking_url": tracking_url,
         }
 
         return NotificationService.send_email(
@@ -131,12 +160,27 @@ class NotificationService:
 
         interview_schedule = getattr(application, "interview_schedule", None)
 
+        tracking_url = (
+                NotificationService
+                ._build_tracking_url_from_base(
+                    getattr(settings, "SITE_URL", ""),
+                    application.tracking_code,
+                )
+            )
+        
+        pdf_content = build_interview_summons_pdf(
+            application=application,
+            interview_schedule=interview_schedule,
+            tracking_url=tracking_url,
+        )
+
         context = {
             "application": application,
             "candidate": application.candidate,
             "poste": application.poste,
             "tracking_code": application.tracking_code,
             "interview_schedule": interview_schedule,
+            "tracking_url": tracking_url,
         }
 
         return NotificationService.send_email(
@@ -146,6 +190,13 @@ class NotificationService:
             html_template_name="emails/interview_scheduled.html",
             context=context,
             fail_silently=True,
+            attachments=[
+                {
+                    "filename": f"interview_summons_{application.application_number}.pdf",
+                    "content": pdf_content,
+                    "mimetype": "application/pdf",
+                }
+            ],
         )
 
     @staticmethod
@@ -168,6 +219,43 @@ class NotificationService:
             to_email=admin_email,
             subject=subject,
             html_template_name="emails/admin_new_application.html",
+            context=context,
+            fail_silently=True,
+        )
+    
+    @staticmethod
+    def send_completion_request_notification(
+        application,
+        completion_request,
+    ):
+
+        tracking_url = (
+            NotificationService
+            ._build_tracking_url_from_base(
+                getattr(settings, "SITE_URL", ""),
+                application.tracking_code,
+            )
+        )
+
+        context = {
+            "application": application,
+            "candidate": application.candidate,
+            "poste": application.poste,
+            "tracking_code": application.tracking_code,
+            "tracking_url": tracking_url,
+            "completion_request": completion_request,
+        }
+
+        return NotificationService.send_email(
+            application=application,
+            to_email=application.candidate.email,
+            subject=(
+                f"طلب استكمال ملف الترشح "
+                f"#{application.application_number}"
+            ),
+            html_template_name=(
+                "emails/completion_request.html"
+            ),
             context=context,
             fail_silently=True,
         )

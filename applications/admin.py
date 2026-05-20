@@ -20,6 +20,8 @@ from reportlab.platypus import (
     Spacer,
 )
 
+from notifications.services import NotificationService
+
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import getSampleStyleSheet
@@ -1187,8 +1189,9 @@ class ApplicationAdmin(admin.ModelAdmin):
 
             try:
 
-                application.set_status(
-                    new_status,
+                ApplicationWorkflowService.transition(
+                    application=application,
+                    new_status=new_status,
                     changed_by=request.user,
                     note=note,
                     visible_to_candidate=visible_to_candidate,
@@ -1264,34 +1267,51 @@ class ApplicationAdmin(admin.ModelAdmin):
 
                     continue
 
-                CompletionRequest.objects.create(
+                completion_request = (
+                    CompletionRequest.objects.create(
 
-                    application=application,
+                        application=application,
 
-                    message=(
-                        "يرجى استكمال الوثائق أو المعلومات الناقصة "
-                        "ثم إعادة إرسال الطلب."
-                    ),
+                        message=(
+                            "يرجى استكمال الوثائق أو المعلومات "
+                            "الناقصة ثم إعادة إرسال الطلب."
+                        ),
 
-                    deadline=timezone.now() + timedelta(days=7),
+                        deadline=timezone.now() + timedelta(days=7),
 
-                    created_by=request.user,
+                        created_by=request.user,
+                    )
                 )
 
-                ApplicationTracking.objects.create(
+                # ApplicationTracking.objects.create(
+                #     application=application,
+                #     status=Application.Status.INCOMPLETE,
+                #     note=(
+                #         "تم طلب استكمال بعض الوثائق أو المعلومات "
+                #         "الخاصة بالملف."
+                #     ),
+                #     changed_by=request.user,
+                #     is_visible_to_candidate=True,
+                # )
+
+                try:
+
+                    NotificationService.send_completion_request_notification(
+                        application,
+                        completion_request,
+                    )
+
+                except Exception:
+
+                    pass
+
+                ApplicationWorkflowService.mark_incomplete(
                     application=application,
-                    status=Application.Status.INCOMPLETE,
+                    user=request.user,
                     note=(
                         "تم طلب استكمال بعض الوثائق أو المعلومات "
                         "الخاصة بالملف."
                     ),
-                    changed_by=request.user,
-                    is_visible_to_candidate=True,
-                )
-
-                ApplicationWorkflowService.mark_incomplete(
-                    application,
-                    request.user,
                 )
 
                 self.message_user(
@@ -1423,18 +1443,41 @@ class ApplicationAdmin(admin.ModelAdmin):
 
             if form.is_valid():
 
-                application.rejection_reason = form.cleaned_data[
+                rejection_reason = form.cleaned_data[
                     "rejection_reason"
                 ]
 
-                application.set_status(
-                    target_status,
-                    changed_by=request.user,
-                    note=form.cleaned_data["note"],
-                    visible_to_candidate=form.cleaned_data[
-                        "visible_to_candidate"
-                    ],
-                )
+                note = form.cleaned_data["note"]
+
+                visible_to_candidate = form.cleaned_data[
+                    "visible_to_candidate"
+                ]
+
+                if target_status == Application.Status.PRELIMINARY_REJECTED:
+
+                    ApplicationWorkflowService.reject_preliminary(
+                        application=application,
+                        reason=rejection_reason,
+                        user=request.user,
+                    )
+
+                else:
+
+                    ApplicationWorkflowService.reject_final(
+                        application=application,
+                        reason=rejection_reason,
+                        user=request.user,
+                    )
+
+                if note:
+
+                    ApplicationWorkflowService.create_tracking_entry(
+                        application=application,
+                        status=target_status,
+                        changed_by=request.user,
+                        note=note,
+                        visible_to_candidate=visible_to_candidate,
+                    )
 
                 return HttpResponseRedirect(
                     reverse(
@@ -1835,3 +1878,62 @@ class ApplicationAdmin(admin.ModelAdmin):
             "completion_requests",
             "evaluation_notes",
         )
+    
+    def save_model(
+        self,
+        request,
+        obj,
+        form,
+        change
+    ):
+
+        if not change:
+
+            return super().save_model(
+                request,
+                obj,
+                form,
+                change
+            )
+
+        previous_obj = Application.objects.get(
+            pk=obj.pk
+        )
+
+        previous_status = previous_obj.status
+
+        new_status = obj.status
+
+        status_changed = (
+            previous_status != new_status
+        )
+
+        # نرجع الحالة القديمة مؤقتًا
+        # حتى transition يكتشف التغيير
+        if status_changed:
+
+            obj.status = previous_status
+
+            super().save_model(
+                request,
+                obj,
+                form,
+                change
+            )
+
+            ApplicationWorkflowService.transition(
+                application=obj,
+                new_status=new_status,
+                changed_by=request.user,
+                note="تم تحديث حالة الطلب إداريًا.",
+                visible_to_candidate=True,
+            )
+
+        else:
+
+            super().save_model(
+                request,
+                obj,
+                form,
+                change
+            )
