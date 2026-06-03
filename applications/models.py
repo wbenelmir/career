@@ -71,6 +71,7 @@ class CandidateProfile(models.Model):
         return f"{self.first_name} {self.last_name}"
 
     def is_eligible_for_head_of_office(self):
+        return True
         grade = (self.current_position_grade or "").strip().lower()
 
         principal_keywords = ['متصرف رئيسي', 'متصرف رئيسى', 'administrateur principal']
